@@ -36,23 +36,26 @@ namespace MeshViewer.Geometry.Vmap
 
                     if (!Spawns.ContainsKey(modelSpawn.Name))
                         Spawns.Add(modelSpawn.Name, modelSpawn);
-                    //else
-                    //    Spawns[modelSpawn.Name].AddReference(modelSpawn.Positions[0], modelSpawn.Rotations[0], modelSpawn.Scales[0]);
+                    // else
+                    //     // Instance already added in ModelSpawn constructor
                 }
+            }
+
+            foreach (var modelInstance in Spawns.Values)
+            {
+                if (!modelInstance.Name.EndsWith(".m2"))
+                    continue;
+
+                foreach (var groupModel in modelInstance.Model.GroupModels)
+                    groupModel.InvertIndices();
             }
         }
 
-        public void Render(Camera camera)
+        public void Render()
         {
             foreach (var modelInstance in Spawns.Values)
-            {
                 foreach (var model in modelInstance.Model.GroupModels)
-                {
-                    if (!model.Valid)
-                        model.PrepareRenderInstanced(modelInstance, camera);
                     model.Render();
-                }
-            }
         }
     }
 }

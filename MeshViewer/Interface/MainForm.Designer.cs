@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            OpenTK.Toolkit.Init(new OpenTK.ToolkitOptions() { Backend = OpenTK.PlatformBackend.PreferNative, EnableHighResolution = true });
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this._wowComboBox = new System.Windows.Forms.ToolStripComboBox();
@@ -39,15 +38,15 @@
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.glControl1 = new OpenTK.GLControl(new OpenTK.Graphics.GraphicsMode(), 4, 0, OpenTK.Graphics.GraphicsContextFlags.Debug);
+            this.glControl1 = new OpenTK.GLControl(new OpenTK.Graphics.GraphicsMode(new OpenTK.Graphics.ColorFormat(32), 32, 8, 4), 4, 1, OpenTK.Graphics.GraphicsContextFlags.Debug | OpenTK.Graphics.GraphicsContextFlags.ForwardCompatible);
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this._playerExplorer = new MeshViewer.Interface.Controls.EntityExplorer();
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this._unitExplorer = new MeshViewer.Interface.Controls.EntityExplorer();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this._gameObjectExplorer = new MeshViewer.Interface.Controls.EntityExplorer();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
-            this._gameObjectExplorer = new MeshViewer.Interface.Controls.EntityExplorer();
             this.menuStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -96,8 +95,8 @@
             // 
             this.loadGeometryToolStripMenuItem.Image = global::MeshViewer.Properties.Resources.Compass;
             this.loadGeometryToolStripMenuItem.Name = "loadGeometryToolStripMenuItem";
-            this.loadGeometryToolStripMenuItem.Size = new System.Drawing.Size(116, 23);
-            this.loadGeometryToolStripMenuItem.Text = "Load Geometry";
+            this.loadGeometryToolStripMenuItem.Size = new System.Drawing.Size(172, 23);
+            this.loadGeometryToolStripMenuItem.Text = "Load Serverside Geometry";
             this.loadGeometryToolStripMenuItem.Click += new System.EventHandler(this.OnLoadGeometryRequest);
             // 
             // captureScreenshotToolStripMenuItem
@@ -154,7 +153,6 @@
             this.glControl1.Name = "glControl1";
             this.glControl1.Size = new System.Drawing.Size(801, 492);
             this.glControl1.TabIndex = 0;
-            this.glControl1.VSync = false;
             // 
             // tabPage2
             // 
@@ -211,6 +209,17 @@
             this.tabPage4.Text = "GameObjects";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
+            // _gameObjectExplorer
+            // 
+            this._gameObjectExplorer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this._gameObjectExplorer.FilterEnabled = true;
+            this._gameObjectExplorer.Location = new System.Drawing.Point(3, 3);
+            this._gameObjectExplorer.Name = "_gameObjectExplorer";
+            this._gameObjectExplorer.Size = new System.Drawing.Size(801, 492);
+            this._gameObjectExplorer.TabIndex = 0;
+            // 
             // statusStrip1
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -225,17 +234,6 @@
             // 
             this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             this.toolStripStatusLabel1.Size = new System.Drawing.Size(0, 17);
-            // 
-            // _gameObjectExplorer
-            // 
-            this._gameObjectExplorer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this._gameObjectExplorer.FilterEnabled = true;
-            this._gameObjectExplorer.Location = new System.Drawing.Point(3, 3);
-            this._gameObjectExplorer.Name = "_gameObjectExplorer";
-            this._gameObjectExplorer.Size = new System.Drawing.Size(801, 492);
-            this._gameObjectExplorer.TabIndex = 0;
             // 
             // MainForm
             // 

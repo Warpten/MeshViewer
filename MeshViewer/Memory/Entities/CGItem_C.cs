@@ -7,7 +7,7 @@ namespace MeshViewer.Memory.Entities
     [TypeConverter(typeof(ExpandableObjectConverter))]
     public class CGItem_C : CGObject_C
     {
-        public CGItem_C(Process game, IntPtr offset) : base(game, offset)
+        public CGItem_C(IntPtr offset) : base(offset)
         {
         }
 
@@ -18,16 +18,16 @@ namespace MeshViewer.Memory.Entities
 
         #region Item
         [Category("Item")]
-        public CGPlayer_C Owner => Game.Manager.GetEntity<CGPlayer_C>(ITEM_FIELD_OWNER);
+        public CGPlayer_C Owner => Game.GetEntity<CGPlayer_C>(ITEM_FIELD_OWNER);
 
         [Category("Item")]
-        public CGContainer_C Contained => Game.Manager.GetEntity<CGContainer_C>(ITEM_FIELD_CONTAINED);
+        public CGContainer_C Contained => Game.GetEntity<CGContainer_C>(ITEM_FIELD_CONTAINED);
 
         [Category("Item")]
-        public CGPlayer_C Creator => Game.Manager.GetEntity<CGPlayer_C>(ITEM_FIELD_CREATOR);
+        public CGPlayer_C Creator => Game.GetEntity<CGPlayer_C>(ITEM_FIELD_CREATOR);
 
         [Category("Item")]
-        public CGPlayer_C GiftCreator => Game.Manager.GetEntity<CGPlayer_C>(ITEM_FIELD_GIFTCREATOR);
+        public CGPlayer_C GiftCreator => Game.GetEntity<CGPlayer_C>(ITEM_FIELD_GIFTCREATOR);
         #endregion
 
         #region Descriptors

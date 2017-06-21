@@ -1,7 +1,6 @@
 ﻿using OpenTK;
-using System.Collections.Generic;
 using System.IO;
-using System;
+using MeshViewer.Rendering;
 
 namespace MeshViewer.Geometry.Model
 {
@@ -38,17 +37,15 @@ namespace MeshViewer.Geometry.Model
             position.Y -= 32 * 533.333313f;
 
             var rotation = reader.Read<Vector3>();
-            var xRotation = Matrix4.CreateRotationX(rotation.X * MathHelper.Pi / 180.0f);
-            var yRotation = Matrix4.CreateRotationY(rotation.Y * MathHelper.Pi / 180.0f);
-            var zRotation = Matrix4.CreateRotationZ(rotation.Z * MathHelper.Pi / 180.0f);
-
-            var rotationMatrix = zRotation * yRotation * xRotation;
+            /// THIS IS OK. IF IT IS BECOMING WRONG, SWAP ROT.Z AND ROT.X
+            var rotationMatrix = RenderingExtensions.FromEulerAngles(rotation.Z * MathHelper.Pi / 180.0f,
+                rotation.X * MathHelper.Pi / 180.0f,
+                rotation.Y * MathHelper.Pi / 180.0f);
 
             var translationMatrix = Matrix4.CreateTranslation(position);
             var scaleMatrix = Matrix4.CreateScale(reader.ReadSingle());
 
-            var positionMatrix = rotationMatrix * scaleMatrix * translationMatrix;
-            PositionMatrix = positionMatrix;
+            PositionMatrix = rotationMatrix * scaleMatrix * translationMatrix;
 
             if (HasBoundingBox)
             {
@@ -60,6 +57,9 @@ namespace MeshViewer.Geometry.Model
             Name = System.Text.Encoding.UTF8.GetString(reader.ReadBytes(nameLength));
 
             Model = WorldModelCache.OpenInstance(directory, Name);
+            foreach (var model in Model.GroupModels)
+                model.AddInstance(PositionMatrix);
+
         }
     }
 }

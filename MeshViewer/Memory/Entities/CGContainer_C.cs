@@ -8,7 +8,7 @@ namespace MeshViewer.Memory.Entities
     [TypeConverter(typeof(ExpandableObjectConverter))]
     public sealed class CGContainer_C : CGItem_C
     {
-        public CGContainer_C(Process game, IntPtr offset) : base(game, offset)
+        public CGContainer_C(IntPtr offset) : base(offset)
         {
         }
 
@@ -24,7 +24,7 @@ namespace MeshViewer.Memory.Entities
             get
             {
                 var items = CONTAINER_FIELD_SLOT; // Caching for perf
-                return Game.Manager.Items.Where(item => items.Contains(item.OBJECT_FIELD_GUID));
+                return Game.Items.Where(item => items.Contains(item.OBJECT_FIELD_GUID));
             }
         }
         #endregion

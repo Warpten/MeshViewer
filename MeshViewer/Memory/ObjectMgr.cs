@@ -14,7 +14,6 @@ namespace MeshViewer.Memory
         private const int FirstObject   = 0xC;
         private const int LocalGUID     = 0xC8;
 
-        private Process _gameProcess;
         private IntPtr _currentManager;
 
         private ulong _localGUID;
@@ -26,12 +25,10 @@ namespace MeshViewer.Memory
         public event Action<CGObject_C> OnSpawn;
         public event Action OnUpdateTick;
 
-        public static int UpdateFrequency { get; set; } = 100;
+        public static int UpdateFrequency { get; set; } = 50;
 
-        public ObjectMgr(Process gameProcess)
+        public ObjectMgr()
         {
-            _gameProcess = gameProcess;
-
             if (!InGame)
                 return;
         }
@@ -102,13 +99,13 @@ namespace MeshViewer.Memory
         /// <returns></returns>
         private IEnumerable<CGObject_C> Enumerate()
         {
-            var currentObject = (uint)_gameProcess.Read<IntPtr>(_currentManager + FirstObject, true);
+            var currentObject = (uint)Game.Read<IntPtr>(_currentManager + FirstObject, true);
 
-            _localGUID = _gameProcess.Read<ulong>(_currentManager + LocalGUID, true);
+            _localGUID = Game.Read<ulong>(_currentManager + LocalGUID, true);
 
             while (currentObject != uint.MinValue && currentObject % 2 == uint.MinValue)
             {
-                var entityObject = new CGObject_C(_gameProcess, new IntPtr(currentObject));
+                var entityObject = new CGObject_C(new IntPtr(currentObject));
                 switch (entityObject.Type)
                 {
                     case ObjectType.Object:
@@ -132,7 +129,7 @@ namespace MeshViewer.Memory
 
                 yield return entityObject;
 
-                currentObject = (uint)_gameProcess.Read<IntPtr>(new IntPtr(currentObject) + NextObject, true);
+                currentObject = (uint)Game.Read<IntPtr>(new IntPtr(currentObject) + NextObject, true);
             }
         }
 
@@ -141,8 +138,8 @@ namespace MeshViewer.Memory
         /// </summary>
         public void Update()
         {
-            _currentManager = _gameProcess.Read<IntPtr>(_gameProcess.Read<int>(CurMgrPointer) + CurMgrOffset, true);
-            _localGUID = _gameProcess.Read<ulong>(_currentManager + LocalGUID, true);
+            _currentManager = Game.Read<IntPtr>(Game.Read<int>(CurMgrPointer) + CurMgrOffset, true);
+            _localGUID = Game.Read<ulong>(_currentManager + LocalGUID, true);
 
             var newEntities = Enumerate().ToDictionary(@object => @object.OBJECT_FIELD_GUID.Value);
 
@@ -164,7 +161,7 @@ namespace MeshViewer.Memory
             OnUpdateTick?.Invoke();
         }
 
-        public bool InGame => _gameProcess.Read<byte>(0x00ED7427) == 0;
-        public int CurrentMap => _gameProcess.Read<int>(_currentManager + 0xD4, true);
+        public bool InGame => Game.Read<byte>(0x00ED7427) == 0;
+        public int CurrentMap => Game.Read<int>(_currentManager + 0xD4, true);
     }
 }

@@ -78,7 +78,7 @@ namespace MeshViewer.Geometry.Map
         private const float GRID_SIZE = 533.333313f;
         private const float GRID_PART_SIZE = GRID_SIZE / V8_SIZE;
 
-        protected override bool GenerateGeometry(ref float[] vertices, ref int[] indices)
+        protected override bool BindData(ref float[] vertices, ref int[] indices)
         {
             vertices = new float[0];
             indices = new int[0];
@@ -155,6 +155,13 @@ namespace MeshViewer.Geometry.Map
 
             CleanVertices(stackedIndices, stackedVertices);
 
+            for (var i = 0; i < stackedIndices.Count; i += 3)
+            {
+                var tmp = stackedIndices[i + 1];
+                stackedIndices[i + 1] = stackedIndices[i + 2];
+                stackedIndices[i + 2] = tmp;
+            }
+
             vertices = stackedVertices.ToArray();
             indices = stackedIndices.ToArray();
             
@@ -171,7 +178,7 @@ namespace MeshViewer.Geometry.Map
             // 1. Iterate all the old indices.
             //    a. If that indice has never been seen before, push the vertice to the new list
             //       as well as the indice, and update the new value.
-            //    b. If that indie has already been seen, push the indice.
+            //    b. If that indice has already been seen, push the indice.
 
             var count = 0;
             for (var i = 0; i < tris.Count; ++i)

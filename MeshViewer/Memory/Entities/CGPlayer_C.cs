@@ -9,7 +9,7 @@ namespace MeshViewer.Memory.Entities
     [TypeConverter(typeof(ExpandableObjectConverter))]
     public sealed class CGPlayer_C : CGUnit_C
     {
-        public CGPlayer_C(Process game, IntPtr offset) : base(game, offset)
+        public CGPlayer_C(IntPtr offset) : base(offset)
         {
         }
 
@@ -53,7 +53,7 @@ namespace MeshViewer.Memory.Entities
         }
 
         [Browsable(false)]
-        public CGGameObject_C DuelArbiter => Game.Manager.GetEntity<CGGameObject_C>(PLAYER_DUEL_ARBITER);
+        public CGGameObject_C DuelArbiter => Game.GetEntity<CGGameObject_C>(PLAYER_DUEL_ARBITER);
 
         #region Bank, buyback and bag management
         [Category("Inventory"), DisplayName("Equipped Items")]
@@ -62,7 +62,7 @@ namespace MeshViewer.Memory.Entities
             get
             {
                 var items = PLAYER_FIELD_INV_SLOT_HEAD.Take(19);
-                return Game.Manager.Items.Where(item => items.Contains(item.OBJECT_FIELD_GUID));
+                return Game.Items.Where(item => items.Contains(item.OBJECT_FIELD_GUID));
             }
         }
 
@@ -72,7 +72,7 @@ namespace MeshViewer.Memory.Entities
             get
             {
                 var items = PLAYER_FIELD_PACK_SLOT_1;
-                return Game.Manager.Items.Where(item => items.Contains(item.OBJECT_FIELD_GUID));
+                return Game.Items.Where(item => items.Contains(item.OBJECT_FIELD_GUID));
             }
         }
 
@@ -82,7 +82,7 @@ namespace MeshViewer.Memory.Entities
             get
             {
                 var items = PLAYER_FIELD_BANK_SLOT_1;
-                return Game.Manager.Items.Where(item => items.Contains(item.OBJECT_FIELD_GUID));
+                return Game.Items.Where(item => items.Contains(item.OBJECT_FIELD_GUID));
             }
         }
         
@@ -91,7 +91,7 @@ namespace MeshViewer.Memory.Entities
             if (bagIndex < 0 || bagIndex >= 4)
                 return null;
             var bag = PLAYER_FIELD_INV_SLOT_HEAD[19 + bagIndex];
-            return Game.Manager.Items.Where(item => item.ITEM_FIELD_CONTAINED == bag);
+            return Game.Items.Where(item => item.ITEM_FIELD_CONTAINED == bag);
         }
 
         public IEnumerable<CGItem_C> OpenBankBag(int bagIndex)
@@ -99,13 +99,13 @@ namespace MeshViewer.Memory.Entities
             if (bagIndex < 0 || bagIndex >= 7)
                 return null;
             var bag = PLAYER_FIELD_BANKBAG_SLOT_1[bagIndex];
-            return Game.Manager.Items.Where(item => item.ITEM_FIELD_CONTAINED == bag);
+            return Game.Items.Where(item => item.ITEM_FIELD_CONTAINED == bag);
         }
 
         public IEnumerable<CGItem_C> GetBuybackItems()
         {
             var bag = PLAYER_FIELD_VENDORBUYBACK_SLOT_1;
-            return Game.Manager.Items.Where(item => bag.Contains(item.OBJECT_FIELD_GUID));
+            return Game.Items.Where(item => bag.Contains(item.OBJECT_FIELD_GUID));
         }
         #endregion
 

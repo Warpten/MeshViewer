@@ -1,5 +1,6 @@
 ﻿using MeshViewer.Geometry.Map;
 using MeshViewer.Geometry.Vmap;
+using MeshViewer.Memory;
 using MeshViewer.Rendering;
 
 namespace MeshViewer.Geometry
@@ -12,6 +13,7 @@ namespace MeshViewer.Geometry
         public string Directory { get; set; }
         public int MapID
         {
+            get { return Game.CurrentMap; }
             set
             {
                 MAP = null;
@@ -36,10 +38,10 @@ namespace MeshViewer.Geometry
             VMAP.LoadTile(tileX, tileY);
         }
 
-        public void Render(int centerTileX, int centerTileY, Camera camera)
+        public void Render(int centerTileX, int centerTileY)
         {
-            MAP.Render(centerTileX, centerTileY, camera);
-            VMAP.Render(centerTileX, centerTileY, camera);
+            MAP.Render(centerTileX, centerTileY);
+            VMAP.Render(centerTileX, centerTileY);
         }
     }
 }

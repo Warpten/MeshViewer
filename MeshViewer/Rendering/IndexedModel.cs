@@ -14,9 +14,18 @@ namespace MeshViewer.Rendering
 
         public bool Valid => GL.IsVertexArray(VAO);
 
+        public ShaderProgram Program { get; set; }
+
         public PrimitiveType Primitive { get; set; } = PrimitiveType.Triangles;
 
-        protected abstract bool GenerateGeometry(ref T[] vertices, ref U[] indices);
+        protected abstract bool BindData(ref T[] vertices, ref U[] indices);
+
+        ~IndexedModel()
+        {
+            // GL.DeleteVertexArray(VAO);
+            // GL.DeleteBuffer(VBO);
+            // GL.DeleteBuffer(EBO);
+        }
         
         private bool _GenerateGeometry()
         {
@@ -25,10 +34,10 @@ namespace MeshViewer.Rendering
 
             T[] vertices = null;
             U[] indices = null;
-            if (!GenerateGeometry(ref vertices, ref indices))
+            if (!BindData(ref vertices, ref indices))
                 return false;
 
-            if (vertices?.Length == 0 || indices?.Length == 0)
+            if (vertices == null || indices == null || vertices?.Length == 0 || indices?.Length == 0)
                 throw new InvalidOperationException();
 
             IndiceCount = indices.Length;
@@ -38,23 +47,25 @@ namespace MeshViewer.Rendering
 
             VBO = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
-            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(vertices.Length * SizeCache<T>.Size), vertices, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertices.Length * SizeCache<T>.Size), vertices, BufferUsageHint.StaticDraw);
+
+            Program.VertexAttribPointer<Vector3>("vertexPosition_modelSpace", 3, VertexAttribPointerType.Float, false);
+            GL.EnableVertexAttribArray(0);
 
             EBO = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, EBO);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, new IntPtr(indices.Length * SizeCache<U>.Size), indices, BufferUsageHint.StaticDraw);
-
-            GL.BindBuffer(BufferTarget.ArrayBuffer, VAO);
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, SizeCache<Vector3>.Size, 0);
-            GL.EnableVertexAttribArray(0);
-
+            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(indices.Length * SizeCache<U>.Size), indices, BufferUsageHint.StaticDraw);
+            
             GL.BindVertexArray(0);
             return true;
         }
 
         public void Render()
         {
-            if (!Valid && !_GenerateGeometry())
+            if (!Valid)
+                _GenerateGeometry();
+
+            if (!Valid)
                 return;
 
             _Render();

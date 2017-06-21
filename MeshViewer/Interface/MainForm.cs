@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -23,11 +24,9 @@ namespace MeshViewer.Interface
     public partial class MainForm : Form
     {
         private CancellationTokenSource _clientUpdaterToken;
-        private Process _game;
 
         #region Terrain Rendering
         private GeometryLoader GeometryLoader { get; set; }
-        public Camera Camera { get; private set; }
         public TerrainTexture Texture { get; private set; }
         #endregion
 
@@ -53,23 +52,22 @@ namespace MeshViewer.Interface
             _clientUpdaterToken?.Cancel();
             _clientUpdaterToken = new CancellationTokenSource();
 
-            _game = new Process(selectedProcess.ID);
-            _game.Camera = new CGCamera_C(_game);
-            _game.Manager = new ObjectMgr(_game);
-            _game.Manager.OnUpdateTick += OnUpdateTick;
+            Game.Open(selectedProcess.ID);
+            Game.OnUpdateTick += OnUpdateTick;
 
-            _game.Manager.OnDespawn += _playerExplorer.OnDespawn;
-            _game.Manager.OnUpdate += _playerExplorer.OnUpdate;
+            Game.OnDespawn += _playerExplorer.OnDespawn;
+            Game.OnUpdate += _playerExplorer.OnUpdate;
 
             Task.Factory.StartNew(() => {
                 while (!_clientUpdaterToken.IsCancellationRequested)
                 {
-                    _game.Manager.Update();
+                    Game.Update();
 
-                    // if (_game.Manager.InGame && _game.Manager.LocalPlayer != null)
-                    //     BeginInvoke((Action)(() => toolStripStatusLabel1.Text = $"Logged in as {_game.Manager.LocalPlayer.Name} (Map #{_game.Manager.CurrentMap})"));
+                    if (Game.InGame && Game.LocalPlayer != null)
+                        BeginInvoke((Action)(() => toolStripStatusLabel1.Text = $"Logged in as {Game.LocalPlayer.Name} (Map #{Game.CurrentMap})"));
 
                     glControl1.Invalidate();
+
                     _clientUpdaterToken.Token.WaitHandle.WaitOne(ObjectMgr.UpdateFrequency);
                 }
 
@@ -83,12 +81,9 @@ namespace MeshViewer.Interface
         /// <param name="e"></param>
         private void OnFormClose(object sender, FormClosingEventArgs e)
         {
-            if (_game != null)
-                _game.Manager.OnUpdateTick -= OnUpdateTick;
+            Game.OnUpdateTick -= OnUpdateTick;
 
-            _clientUpdaterToken?.Token.Register(() => {
-                _game = null;
-            });
+            _clientUpdaterToken?.Token.Register(Game.Close);
             _clientUpdaterToken?.Cancel();
         }
 
@@ -97,7 +92,7 @@ namespace MeshViewer.Interface
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnFormLoad(object sender, EventArgs e)
+        private unsafe void OnFormLoad(object sender, EventArgs e)
         {
             #region Process List
             _wowComboBox.BeginUpdate();
@@ -144,28 +139,65 @@ namespace MeshViewer.Interface
             #region Rendering
 #if DEBUG
             glControl1.Context.ErrorChecking = true;
+
+            // GL.Enable(EnableCap.DebugOutput);
+            // GL.Enable(EnableCap.DebugOutputSynchronous);
+            /*GL.DebugMessageCallback((DebugSource source, DebugType type, int id, DebugSeverity severity, int length, IntPtr messagePtr, IntPtr errorParam) =>
+            {
+                if (id == 131169 || id == 131185 || id == 131218 || id == 131204)
+                    return;
+
+                var oldForegroundColor = Console.ForegroundColor;
+
+                var message = new string((sbyte*)messagePtr, 0, length, Encoding.ASCII);
+
+                switch (severity)
+                {
+                    case DebugSeverity.DebugSeverityNotification:
+                        Console.ForegroundColor = ConsoleColor.DarkYellow;
+                        break;
+                    case DebugSeverity.DebugSeverityHigh:
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        break;
+                    case DebugSeverity.DebugSeverityMedium:
+                        Console.ForegroundColor = ConsoleColor.Blue;
+                        break;
+                    case DebugSeverity.DebugSeverityLow:
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        break;
+                }
+
+                Console.WriteLine(message);
+                Console.ForegroundColor = oldForegroundColor;
+            }, IntPtr.Zero);*/
+
 #endif
             glControl1.Paint += (_, __) => Render();
             glControl1.Resize += (_, __) => {
                 GL.Viewport(0, 0, glControl1.Width, glControl1.Height);
-                Camera?.SetViewport(glControl1.Width, glControl1.Height);
+
+                if (Game.Camera != null)
+                    Game.Camera.AspectRatio = glControl1.Width / (float)glControl1.Height;
             };
 
-            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
-            GL.ClearColor(0.3f, 0.3f, 0.32f, 1.0f);
+            GL.ClearColor(Color.Black);
             GL.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
             GL.Enable(EnableCap.DepthTest);
+            GL.Enable(EnableCap.Multisample);
+            GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
 
             var terrainProgram = new ShaderProgram();
-            terrainProgram.AddVertexShader("./shaders/terrain.vertex.shader");
-            terrainProgram.AddFragmentShader("./shaders/terrain.fragment.shader");
+            terrainProgram.AddShader(ShaderType.VertexShader,   "./shaders/terrain.vert");
+            terrainProgram.AddShader(ShaderType.FragmentShader, "./shaders/mixed.frag");
+            terrainProgram.AddShader(ShaderType.GeometryShader, "./shaders/mixed.geom");
             terrainProgram.Link();
             ShaderProgramCache.Instance.Add("terrain", terrainProgram);
 
             var wmoProgram = new ShaderProgram();
-            wmoProgram.AddVertexShader("./shaders/wmo.vertex.shader");
-            wmoProgram.AddFragmentShader("./shaders/wmo.fragment.shader");
+            wmoProgram.AddShader(ShaderType.VertexShader,   "./shaders/wmo.vert");
+            wmoProgram.AddShader(ShaderType.FragmentShader, "./shaders/mixed.frag");
+            wmoProgram.AddShader(ShaderType.GeometryShader, "./shaders/mixed.geom");
             wmoProgram.Link();
             ShaderProgramCache.Instance.Add("wmo", wmoProgram);
 
@@ -173,32 +205,23 @@ namespace MeshViewer.Interface
             #endregion
         }
 
-        private void OnLoadGeometryRequest(object sender, EventArgs e)
-        {
-            if (_game != null)
-                LoadMap();
-        }
+        private void OnLoadGeometryRequest(object sender, EventArgs e) => LoadMap();
 
         private void OnOpenSettingsRequest(object sender, EventArgs e) => new SettingsForm().ShowDialog();
 
         private void OnUpdateTick()
         {
-            _playerExplorer.SetDataSource(_game.Manager.Players);
-            _unitExplorer.SetDataSource(_game.Manager.Units);
-            _gameObjectExplorer.SetDataSource(_game.Manager.GameObjects);
+            _playerExplorer.SetDataSource(Game.Players);
+            _unitExplorer.SetDataSource(Game.Units);
+            _gameObjectExplorer.SetDataSource(Game.GameObjects);
         }
 
         #region Terrain Rendering
         private async void LoadMap()
         {
             GeometryLoader = await Task.Factory.StartNew(() => {
-                return new GeometryLoader(@"D:\Repositories\omfg.gg\Build\bin\RelWithDebInfo", _game.Manager.CurrentMap);
+                return new GeometryLoader(@"D:\CATACLYSM DATA\", Game.CurrentMap);
             });
-
-            var orientation = Matrix3.CreateFromQuaternion(_game.Camera.Matrix.ExtractRotation());
-            Camera = new Camera(new Vector3(_game.Camera.X, _game.Camera.Y, _game.Camera.Z),
-                Vector3.Transform(Vector3.UnitZ, orientation),
-                glControl1.Width, glControl1.Height);
 
             glControl1.Invalidate();
         }
@@ -209,19 +232,16 @@ namespace MeshViewer.Interface
                 BeginInvoke((Action)(() => Render()));
             else
             {
-                if (Camera != null)
-                    Camera.Update();
-
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
                 GL.ActiveTexture(TextureUnit.Texture0);
                 GL.BindTexture(TextureTarget.Texture2D, Texture.TextureID);
 
-                if (_game?.Manager != null && GeometryLoader != null)
+                if (Game.IsValid && GeometryLoader != null)
                 {
-                    var tileX = (int)Math.Floor(32 - _game.LocalPlayer.X / 533.3333f);
-                    var tileY = (int)Math.Floor(32 - _game.LocalPlayer.Y / 533.3333f);
-                    GeometryLoader.Render(tileY, tileX, Camera);
+                    var tileX = (int)Math.Floor(32 - Game.LocalPlayer.X / 533.3333f);
+                    var tileY = (int)Math.Floor(32 - Game.LocalPlayer.Y / 533.3333f);
+                    GeometryLoader.Render(tileY, tileX);
                 }
 
                 glControl1.SwapBuffers();

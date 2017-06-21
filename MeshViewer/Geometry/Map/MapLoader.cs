@@ -1,6 +1,6 @@
-﻿using MeshViewer.Rendering;
+﻿using MeshViewer.Memory;
+using MeshViewer.Rendering;
 using OpenTK;
-using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,22 +27,27 @@ namespace MeshViewer.Geometry.Map
             if (Grids.ContainsKey(gridHash))
                 return;
 
-            var gridLoader = new GridMapLoader(Directory, MapID, tileX, tileY);
+            var gridLoader = new GridMapLoader(Directory, MapID, tileX, tileY) {
+                Program = ShaderProgramCache.Instance.Get("terrain")
+            };
             if (gridLoader.FileExists)
                 Grids[gridHash] = gridLoader;
         }
 
         private int PackTile(int x, int y) => ((x & 0xFF) << 8) | (y & 0xFF);
 
-        public void Render(int centerTileX, int centerTileY, Camera camera)
+        public void Render(int centerTileX, int centerTileY)
         {
-            const int MAX_CHUNK_DISTANCE = 0; /// Debugging
+            const int MAX_CHUNK_DISTANCE = 1; /// Debugging
 
             var terrainProgram = ShaderProgramCache.Instance.Get("terrain");
-            GL.UseProgram(terrainProgram.Program);
-            var projModelView = Matrix4.Mult(camera.View, camera.Projection);
-            GL.UniformMatrix4(terrainProgram.Uniforms["modelViewProjection"], false, ref projModelView);
-            
+            var projModelView = Matrix4.Mult(Game.Camera.View, Game.Camera.Projection);
+            var cameraDirection = Game.Camera.Forward;
+
+            terrainProgram.Use();
+            terrainProgram.UniformMatrix4("modelViewProjection", false, ref projModelView);
+            terrainProgram.UniformVector3("camera_direction", ref cameraDirection);
+
             for (var i = centerTileY - MAX_CHUNK_DISTANCE; i <= centerTileY + MAX_CHUNK_DISTANCE; ++i)
                 for (var j = centerTileX - MAX_CHUNK_DISTANCE; j <= centerTileX + MAX_CHUNK_DISTANCE; ++j)
                     if (!Grids.ContainsKey(PackTile(j, i)))

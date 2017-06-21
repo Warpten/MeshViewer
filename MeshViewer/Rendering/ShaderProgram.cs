@@ -1,4 +1,6 @@
-﻿using OpenTK.Graphics.OpenGL;
+﻿using MeshViewer.Memory;
+using OpenTK;
+using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,34 +13,26 @@ namespace MeshViewer.Rendering
     {
         public int Program { get; private set; }
 
-        private int VertexShader { get; set; }
-        private int FragmentShader { get; set; }
+        private Dictionary<ShaderType, int> _shaders = new Dictionary<ShaderType, int>();
 
         public Dictionary<string, int> Attributes { get; } = new Dictionary<string, int>();
         public Dictionary<string, int> Uniforms { get; } = new Dictionary<string, int>();
 
-        public void AddVertexShader(string fileName)
+        public void AddShader(ShaderType shaderType, string fileName)
         {
-            var vertexShader = Shader.Compile(ShaderType.VertexShader, fileName);
-            if (vertexShader != -1)
-                VertexShader = vertexShader;
-        }
-
-        public void AddFragmentShader(string fileName)
-        {
-            var fragmentShader = Shader.Compile(ShaderType.FragmentShader, fileName);
-            if (FragmentShader != -1)
-                FragmentShader = fragmentShader;
+            var shader = Shader.Compile(shaderType, fileName);
+            if (shader != -1)
+                _shaders[shaderType] = shader;
         }
 
         public bool Link()
         {
-            if (VertexShader <= 0 || FragmentShader <= 0)
+            if (!_shaders.ContainsKey(ShaderType.FragmentShader) || !_shaders.ContainsKey(ShaderType.VertexShader))
                 return false;
 
             Program = GL.CreateProgram();
-            GL.AttachShader(Program, VertexShader);
-            GL.AttachShader(Program, FragmentShader);
+            foreach (var kv in _shaders)
+                GL.AttachShader(Program, kv.Value);
             GL.LinkProgram(Program);
 
             var logInfo = GL.GetProgramInfoLog(Program);
@@ -48,12 +42,6 @@ namespace MeshViewer.Rendering
 
             GL.UseProgram(Program);
             GL.ValidateProgram(Program);
-
-            GL.DetachShader(Program, VertexShader);
-            GL.DeleteShader(VertexShader);
-
-            GL.DetachShader(Program, FragmentShader);
-            GL.DeleteShader(FragmentShader);
 
             GL.GetProgram(Program, GetProgramParameterName.ActiveAttributes, out int attributeCount);
 
@@ -73,7 +61,70 @@ namespace MeshViewer.Rendering
                 Uniforms[GL.GetActiveUniformName(Program, i)] = GL.GetUniformLocation(Program, uniformName);
             }
 
+            foreach (var shader in _shaders)
+            {
+                GL.DetachShader(Program, shader.Value);
+                GL.DeleteShader(shader.Value);
+            }
+
+            _shaders.Clear();
+
             return true;
+        }
+
+        public void VertexAttribPointer<T>(string attributeName, int size, VertexAttribPointerType type, bool normalized = false, int offset = 0) where T : struct
+        {
+            var attribute = Attributes[attributeName];
+
+            if (typeof(T) == typeof(Matrix4))
+            {
+                GL.VertexAttribPointer(attribute + 0, 4, type, normalized, SizeCache<T>.Size, offset + 0 * SizeCache<Vector4>.Size);
+                GL.VertexAttribPointer(attribute + 1, 4, type, normalized, SizeCache<T>.Size, offset + 1 * SizeCache<Vector4>.Size);
+                GL.VertexAttribPointer(attribute + 2, 4, type, normalized, SizeCache<T>.Size, offset + 2 * SizeCache<Vector4>.Size);
+                GL.VertexAttribPointer(attribute + 3, 4, type, normalized, SizeCache<T>.Size, offset + 3 * SizeCache<Vector4>.Size);
+            }
+            else
+                GL.VertexAttribPointer(attribute, size, type, normalized, SizeCache<T>.Size, offset);
+        }
+
+        public void UniformMatrix4(string uniformName, bool transpose, ref Matrix4 matrix)
+        {
+            GL.UniformMatrix4(Uniforms[uniformName], false, ref matrix);
+        }
+
+        public void UniformVector3(string uniformName, ref Vector3 vector)
+        {
+            GL.Uniform3(Uniforms[uniformName], ref vector);
+        }
+
+        public void Use() => GL.UseProgram(Program);
+
+        public void EnableVertexAttribArray<T>(string attributeName) where T : struct
+        {
+            var attribute = Attributes[attributeName];
+            if (typeof(T) == typeof(Matrix4))
+            {
+                GL.EnableVertexAttribArray(attribute);
+                GL.EnableVertexAttribArray(attribute + 1);
+                GL.EnableVertexAttribArray(attribute + 2);
+                GL.EnableVertexAttribArray(attribute + 3);
+            }
+            else
+                GL.EnableVertexAttribArray(attribute);
+        }
+
+        public void VertexAttribDivisor<T>(string attributeName, int divisor) where T : struct
+        {
+            var attribute = Attributes[attributeName];
+            if (typeof(T) == typeof(Matrix4))
+            {
+                GL.VertexAttribDivisor(attribute + 0, divisor);
+                GL.VertexAttribDivisor(attribute + 1, divisor);
+                GL.VertexAttribDivisor(attribute + 2, divisor);
+                GL.VertexAttribDivisor(attribute + 3, divisor);
+            }
+            else
+                GL.VertexAttribDivisor(attribute, divisor);
         }
     }
 

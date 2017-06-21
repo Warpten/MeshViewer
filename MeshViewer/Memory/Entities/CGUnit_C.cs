@@ -8,7 +8,7 @@ namespace MeshViewer.Memory.Entities
     [TypeConverter(typeof(ExpandableObjectConverter))]
     public class CGUnit_C : CGObject_C
     {
-        public CGUnit_C(Process game, IntPtr offset) : base(game, offset)
+        public CGUnit_C(IntPtr offset) : base(offset)
         {
         }
 
@@ -45,19 +45,19 @@ namespace MeshViewer.Memory.Entities
 
         #region Unit
         [Category("Unit"), TypeConverter(typeof(ExpandableObjectConverter))]
-        public virtual CGUnit_C Target     => Game.Manager.GetEntity<CGUnit_C>(UNIT_FIELD_TARGET);
+        public virtual CGUnit_C Target     => Game.GetEntity<CGUnit_C>(UNIT_FIELD_TARGET);
 
         [Category("Unit"), TypeConverter(typeof(ExpandableObjectConverter))]
-        public virtual CGUnit_C CharmedBy => Game.Manager.GetEntity<CGUnit_C>(UNIT_FIELD_CHARMEDBY);
+        public virtual CGUnit_C CharmedBy => Game.GetEntity<CGUnit_C>(UNIT_FIELD_CHARMEDBY);
 
         [Category("Unit"), TypeConverter(typeof(ExpandableObjectConverter))]
-        public virtual CGUnit_C SummonedBy => Game.Manager.GetEntity<CGUnit_C>(UNIT_FIELD_SUMMONEDBY);
+        public virtual CGUnit_C SummonedBy => Game.GetEntity<CGUnit_C>(UNIT_FIELD_SUMMONEDBY);
 
         [Category("Unit"), TypeConverter(typeof(ExpandableObjectConverter))]
-        public virtual CGUnit_C CreatedBy  => Game.Manager.GetEntity<CGUnit_C>(UNIT_FIELD_CREATEDBY);
+        public virtual CGUnit_C CreatedBy  => Game.GetEntity<CGUnit_C>(UNIT_FIELD_CREATEDBY);
 
         [Category("Unit"), TypeConverter(typeof(ExpandableObjectConverter))]
-        public virtual CGObject_C ChannelObject => Game.Manager.GetEntity<CGUnit_C>(UNIT_FIELD_CHANNEL_OBJECT);
+        public virtual CGObject_C ChannelObject => Game.GetEntity<CGUnit_C>(UNIT_FIELD_CHANNEL_OBJECT);
         #endregion
 
         #region Descriptors

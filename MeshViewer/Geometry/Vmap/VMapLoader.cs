@@ -1,4 +1,5 @@
 ﻿using MeshViewer.Geometry.Model;
+using MeshViewer.Memory;
 using MeshViewer.Rendering;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -55,16 +56,19 @@ namespace MeshViewer.Geometry.Vmap
 
         private int PackTile(int x, int y) => ((x & 0xFF) << 8) | (y & 0xFF);
 
-        public void Render(int centerTileX, int centerTileY, Camera camera)
+        public void Render(int centerTileX, int centerTileY)
         {
             if (IsTiled)
             {
                 var wmoProgram = ShaderProgramCache.Instance.Get("wmo");
-                GL.UseProgram(wmoProgram.Program);
-                var view = Matrix4.Mult(camera.View, camera.Projection);
-                GL.UniformMatrix4(wmoProgram.Uniforms["projection_view"], false, ref view);
+                var view = Matrix4.Mult(Game.Camera.View, Game.Camera.Projection);
+                var cameraDirection = Game.Camera.Forward;
 
-                const int MAX_CHUNK_DISTANCE = 0; /// Debugging
+                wmoProgram.Use();
+                wmoProgram.UniformMatrix4("projection_view", false, ref view);
+                wmoProgram.UniformVector3("camera_direction", ref cameraDirection);
+
+                const int MAX_CHUNK_DISTANCE = 1; /// Debugging
 
                 for (var i = centerTileY - MAX_CHUNK_DISTANCE; i <= centerTileY + MAX_CHUNK_DISTANCE; ++i)
                     for (var j = centerTileX - MAX_CHUNK_DISTANCE; j <= centerTileX + MAX_CHUNK_DISTANCE; ++j)
@@ -76,7 +80,7 @@ namespace MeshViewer.Geometry.Vmap
                     if (!(Math.Abs(centerTileX - mapGrid.X) <= MAX_CHUNK_DISTANCE && Math.Abs(centerTileY - mapGrid.Y) <= MAX_CHUNK_DISTANCE))
                         continue;
 
-                    mapGrid.Render(camera);
+                    mapGrid.Render();
                 }
             }
             //else

@@ -4,6 +4,7 @@ using MeshViewer.Rendering;
 using MeshViewer.Memory;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace MeshViewer.Geometry.Model
 {
@@ -14,6 +15,7 @@ namespace MeshViewer.Geometry.Model
         public uint[] Indices { get; private set; }
 
         private List<Matrix4> _instancePositions = new List<Matrix4>();
+        public List<Matrix4> Positions => _instancePositions;
 
         public GroupModel(BinaryReader reader)
         {
@@ -59,34 +61,34 @@ namespace MeshViewer.Geometry.Model
             }
         }
 
-        public void PrepareRenderInstanced(ModelSpawn spawn, Camera camera)
+        public void AddInstance(Matrix4 spawn)
         {
-            _instancePositions.Add(spawn.PositionMatrix);
+            _instancePositions.Add(spawn);
         }
 
-        protected override bool GenerateGeometry(ref Vector3[] vertices, ref uint[] indices, ref Matrix4[] instancePositions)
+        protected override bool BindData(ref Vector3[] vertices, ref uint[] indices, ref Matrix4[] instancePositions)
         {
             vertices = Vertices;
             indices = Indices;
             instancePositions = _instancePositions.ToArray();
+
+            Vertices = null;
+            Indices = null;
+            _instancePositions = null;
+
             return true;
         }
-
-        private bool _inverted = false;
-        private void InvertIndices(ModelSpawn spawn)
+        
+        public void InvertIndices()
         {
-            if (_inverted)
+            if (Indices == null)
                 return;
 
-            _inverted = true;
-            if (spawn.Name.EndsWith(".m2)"))
+            for (var i = 0; i < Indices.Length; i += 3)
             {
-                for (var i = 0; i < Indices.Length; i += 3)
-                {
-                    var tmp = Indices[i];
-                    Indices[i] = Indices[i + 2];
-                    Indices[i + 2] = tmp;
-                }
+                var tmp = Indices[i];
+                Indices[i] = Indices[i + 2];
+                Indices[i + 2] = tmp;
             }
         }
     }

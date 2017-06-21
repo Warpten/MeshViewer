@@ -7,7 +7,7 @@ namespace MeshViewer.Memory.Entities
     [TypeConverter(typeof(ExpandableObjectConverter))]
     public class CGGameObject_C : CGObject_C
     {
-        public CGGameObject_C(Process game, IntPtr offset) : base(game, offset)
+        public CGGameObject_C(IntPtr offset) : base(offset)
         {
         }
 
@@ -18,7 +18,7 @@ namespace MeshViewer.Memory.Entities
 
         #region General
         [Category("General")]
-        public CGUnit_C CreatedBy => Game.Manager.GetEntity<CGUnit_C>(OBJECT_FIELD_CREATED_BY);
+        public CGUnit_C CreatedBy => Game.GetEntity<CGUnit_C>(OBJECT_FIELD_CREATED_BY);
 
         [Category("General")]
         public string Name => ReadCString(Read<IntPtr>(Read<IntPtr>(BaseAddress + 0x1CC) + 0xB4), 100);
@@ -35,7 +35,7 @@ namespace MeshViewer.Memory.Entities
 
         #region Descriptors
         [Category("GameObject Descriptors")]
-        public ulong OBJECT_FIELD_CREATED_BY     => GetUpdateField<ulong>(GameObjectFields.OBJECT_FIELD_CREATED_BY);
+        public ObjectGuid OBJECT_FIELD_CREATED_BY=> GetUpdateField<ObjectGuid>(GameObjectFields.OBJECT_FIELD_CREATED_BY);
 
         [Category("GameObject Descriptors")]
         public int GAMEOBJECT_DISPLAYID          => GetUpdateField<int>(GameObjectFields.GAMEOBJECT_DISPLAYID);

@@ -10,15 +10,12 @@ namespace MeshViewer.Memory.Entities
     {
         [Browsable(false)]
         public IntPtr BaseAddress { get; }
-        [Browsable(false)]
-        protected Process Game { get; }
+
         private IntPtr _updateFields;
 
-        public CGObject_C(Process game, IntPtr offset)
+        public CGObject_C(IntPtr offset)
         {
             BaseAddress = offset;
-
-            Game = game;
 
             Refresh();
         }
@@ -77,16 +74,16 @@ namespace MeshViewer.Memory.Entities
             {
                 case ObjectType.Unit:
                 case ObjectType.Player:
-                    return new CGUnit_C(Game, BaseAddress);
+                    return new CGUnit_C(BaseAddress);
                 default:
                     return null;
             }
         }
 
-        public CGPlayer_C     ToPlayer()     => Type == ObjectType.Player     ? new CGPlayer_C(Game, BaseAddress) : null;
-        public CGGameObject_C ToGameObject() => Type == ObjectType.GameObject ? new CGGameObject_C(Game, BaseAddress) : null;
-        public CGContainer_C  ToContainer()  => Type == ObjectType.Container  ? new CGContainer_C(Game, BaseAddress) : null;
-        public CGItem_C       ToItem()       => Type == ObjectType.Item       ? new CGItem_C(Game, BaseAddress) : null;
+        public CGPlayer_C     ToPlayer()     => Type == ObjectType.Player     ? new CGPlayer_C(BaseAddress) : null;
+        public CGGameObject_C ToGameObject() => Type == ObjectType.GameObject ? new CGGameObject_C(BaseAddress) : null;
+        public CGContainer_C  ToContainer()  => Type == ObjectType.Container  ? new CGContainer_C(BaseAddress) : null;
+        public CGItem_C       ToItem()       => Type == ObjectType.Item       ? new CGItem_C(BaseAddress) : null;
         #endregion
 
         protected enum ObjectFields : int

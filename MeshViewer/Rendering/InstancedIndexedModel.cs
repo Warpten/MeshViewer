@@ -2,15 +2,19 @@
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MeshViewer.Rendering
 {
     public abstract class InstancedIndexedModel<T, U> where T : struct where U : struct
     {
+        ~InstancedIndexedModel()
+        {
+            // GL.DeleteVertexArray(VAO);
+            // GL.DeleteBuffer(VBO);
+            // GL.DeleteBuffer(EBO);
+            // GL.DeleteBuffer(InstancesPositionVBO);
+        }
+
         private int IndiceCount { get; set; }
         public int VAO { get; private set; }
         public int VBO { get; private set; }
@@ -19,6 +23,7 @@ namespace MeshViewer.Rendering
         public int InstancesPositionVBO { get; private set; }
 
         public ShaderProgram Program { get; set; }
+
         public string VerticeAttribute { get; set; }
         public string InstancePositionAttribute { get; set; }
 
@@ -27,7 +32,7 @@ namespace MeshViewer.Rendering
         public PrimitiveType Primitive { get; set; } = PrimitiveType.Triangles;
         public int InstanceCount { get; set; } = 0;
 
-        protected abstract bool GenerateGeometry(ref T[] vertices, ref U[] indices, ref Matrix4[] instancePositions);
+        protected abstract bool BindData(ref T[] vertices, ref U[] indices, ref Matrix4[] instancePositions);
 
         private bool _GenerateGeometry()
         {
@@ -37,59 +42,49 @@ namespace MeshViewer.Rendering
             T[] vertices = null;
             U[] indices = null;
             Matrix4[] instancePositions = null;
-            if (!GenerateGeometry(ref vertices, ref indices, ref instancePositions))
+            if (!BindData(ref vertices, ref indices, ref instancePositions))
                 return false;
 
             if (vertices == null || vertices?.Length == 0 || indices?.Length == 0 || instancePositions?.Length == 0 )
                 return false;
 
             IndiceCount = indices.Length;
+            InstanceCount = instancePositions.Length;
 
             VAO = GL.GenVertexArray();
             GL.BindVertexArray(VAO);
 
             VBO = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
-            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(vertices.Length * SizeCache<T>.Size), vertices, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertices.Length * SizeCache<T>.Size), vertices, BufferUsageHint.StaticDraw);
+
+            Program.VertexAttribPointer<Vector3>(VerticeAttribute, 3, VertexAttribPointerType.Float);
+            Program.EnableVertexAttribArray<Vector3>(VerticeAttribute);
 
             EBO = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, EBO);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, new IntPtr(indices.Length * SizeCache<U>.Size), indices, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(indices.Length * SizeCache<U>.Size), indices, BufferUsageHint.StaticDraw);
 
             InstancesPositionVBO = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, InstancesPositionVBO);
-            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(instancePositions.Length * SizeCache<Matrix4>.Size), instancePositions, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(instancePositions.Length * SizeCache<Matrix4>.Size), instancePositions, BufferUsageHint.StaticDraw);
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, VAO);
-
-            GL.VertexAttribPointer(Program.Attributes[VerticeAttribute], 3, VertexAttribPointerType.Float, false, SizeCache<Vector3>.Size, 0);
-            GL.EnableVertexAttribArray(Program.Attributes[VerticeAttribute]);
-            
-            GL.VertexAttribPointer(Program.Attributes[InstancePositionAttribute] + 0, 4, VertexAttribPointerType.Float, false, SizeCache<Matrix4>.Size, 0);
-            GL.VertexAttribPointer(Program.Attributes[InstancePositionAttribute] + 1, 4, VertexAttribPointerType.Float, false, SizeCache<Matrix4>.Size, 16);
-            GL.VertexAttribPointer(Program.Attributes[InstancePositionAttribute] + 2, 4, VertexAttribPointerType.Float, false, SizeCache<Matrix4>.Size, 24);
-            GL.VertexAttribPointer(Program.Attributes[InstancePositionAttribute] + 3, 4, VertexAttribPointerType.Float, false, SizeCache<Matrix4>.Size, 32);
-            GL.EnableVertexAttribArray(Program.Attributes[InstancePositionAttribute] + 0);
-            GL.EnableVertexAttribArray(Program.Attributes[InstancePositionAttribute] + 1);
-            GL.EnableVertexAttribArray(Program.Attributes[InstancePositionAttribute] + 2);
-            GL.EnableVertexAttribArray(Program.Attributes[InstancePositionAttribute] + 3);
-            GL.VertexAttribDivisor(Program.Attributes[InstancePositionAttribute] + 0, 1);
-            GL.VertexAttribDivisor(Program.Attributes[InstancePositionAttribute] + 1, 1);
-            GL.VertexAttribDivisor(Program.Attributes[InstancePositionAttribute] + 2, 1);
-            GL.VertexAttribDivisor(Program.Attributes[InstancePositionAttribute] + 3, 1);
+            Program.VertexAttribPointer<Matrix4>(InstancePositionAttribute, 16, VertexAttribPointerType.Float);
+            Program.VertexAttribDivisor<Matrix4>(InstancePositionAttribute, 1);
+            Program.EnableVertexAttribArray<Matrix4>(InstancePositionAttribute);
 
             GL.BindVertexArray(0);
 
-            InstanceCount = instancePositions.Length;
             return true;
         }
 
         public void Render()
         {
-            if (!Valid && !_GenerateGeometry())
-                return;
+            if (!Valid)
+                _GenerateGeometry();
 
-            _Render();
+            if (Valid)
+                _Render();
         }
 
         public virtual void _Render()
