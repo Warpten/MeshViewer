@@ -5,8 +5,7 @@ using MeshViewer.Memory.Entities;
 using MeshViewer.Memory.Enums;
 using MeshViewer.Properties;
 using MeshViewer.Rendering;
-using MeshViewer.Rendering.Textures;
-using OpenTK;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Data;
@@ -14,7 +13,6 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -27,7 +25,6 @@ namespace MeshViewer.Interface
 
         #region Terrain Rendering
         private GeometryLoader GeometryLoader { get; set; }
-        public TerrainTexture Texture { get; private set; }
         #endregion
 
         public MainForm()
@@ -200,8 +197,6 @@ namespace MeshViewer.Interface
             wmoProgram.AddShader(ShaderType.GeometryShader, "./shaders/mixed.geom");
             wmoProgram.Link();
             ShaderProgramCache.Instance.Add("wmo", wmoProgram);
-
-            Texture = new TerrainTexture();
             #endregion
         }
 
@@ -217,13 +212,28 @@ namespace MeshViewer.Interface
         }
 
         #region Terrain Rendering
-        private async void LoadMap()
+        private void LoadMap()
         {
-            GeometryLoader = await Task.Factory.StartNew(() => {
-                return new GeometryLoader(@"D:\CATACLYSM DATA\", Game.CurrentMap);
-            });
+            var directoryPickerDialog = new CommonOpenFileDialog() {
+                IsFolderPicker = true
+            };
+            if (directoryPickerDialog.ShowDialog() != CommonFileDialogResult.Ok)
+                return;
 
-            glControl1.Invalidate();
+            if (Game.LocalPlayer == null)
+                return;
+
+            /// All the geometry is loaded Z-up:
+            ///   Z
+            ///   |
+            ///   ._ Y
+            ///  /
+            /// X
+            Task.Factory.StartNew(() =>
+            {
+                GeometryLoader = new GeometryLoader(directoryPickerDialog.FileName, Game.CurrentMap);
+                BeginInvoke((Action)(() => glControl1.Invalidate()));
+            });
         }
 
         private void Render()
@@ -233,9 +243,6 @@ namespace MeshViewer.Interface
             else
             {
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-                GL.ActiveTexture(TextureUnit.Texture0);
-                GL.BindTexture(TextureTarget.Texture2D, Texture.TextureID);
 
                 if (Game.IsValid && GeometryLoader != null)
                 {
@@ -256,14 +263,15 @@ namespace MeshViewer.Interface
                 Filter = "PNG File (*.png)|*.png|JPEG File (*.jpeg, *.jpg)|*.jpeg|BMP File (*.bmp)|*.bmp"
             };
 
+            var bmp = new Bitmap(glControl1.ClientSize.Width, glControl1.ClientSize.Height);
+            var data = bmp.LockBits(glControl1.ClientRectangle, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            GL.ReadPixels(0, 0, glControl1.ClientSize.Width, glControl1.ClientSize.Height, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, PixelType.UnsignedByte, data.Scan0);
+            bmp.UnlockBits(data);
+            bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
+
+
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                var bmp = new Bitmap(glControl1.ClientSize.Width, glControl1.ClientSize.Height);
-                var data = bmp.LockBits(glControl1.ClientRectangle, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-                GL.ReadPixels(0, 0, glControl1.ClientSize.Width, glControl1.ClientSize.Height, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, PixelType.UnsignedByte, data.Scan0);
-                bmp.UnlockBits(data);
-                bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
-
                 switch (Path.GetExtension(openFileDialog.FileName))
                 {
                     case "bmp":
@@ -278,6 +286,8 @@ namespace MeshViewer.Interface
                         return;
                 }
             }
+            else
+                Clipboard.SetImage(bmp);
         }
 
         private class ProcessIdentifier

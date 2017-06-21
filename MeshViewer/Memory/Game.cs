@@ -13,7 +13,7 @@ namespace MeshViewer.Memory
         private IntPtr BaseAddress { get; }
 
         private static ObjectMgr Manager { get; set; }
-        public static CGCamera_C Camera { get; private set; }
+        public static CGCamera Camera { get; private set; }
 
         public static bool IsValid => Instance != null;
 
@@ -84,7 +84,7 @@ namespace MeshViewer.Memory
             if (_handle == IntPtr.Zero)
                 throw new InvalidOperationException($"Unable to open a handle to process #{pid}.");
             
-            Camera = new CGCamera_C();
+            Camera = new CGCamera();
             Manager = new ObjectMgr();
         }
 

@@ -47,8 +47,8 @@ namespace MeshViewer.Geometry.Map
                 // if (header.AreaMapOffset != 0 && !LoadAreaData(reader, header.AreaMapOffset, header.AreaMapSize))
                 //     throw new InvalidOperationException();
 
-                if (FileHeader.LiquidMapOffset != 0 && !LoadLiquidData(reader, FileHeader.LiquidMapOffset, FileHeader.LiquidMapSize))
-                    throw new InvalidOperationException();
+                // if (FileHeader.LiquidMapOffset != 0 && !LoadLiquidData(reader, FileHeader.LiquidMapOffset, FileHeader.LiquidMapSize))
+                //     throw new InvalidOperationException();
 
                 if (FileHeader.HeightMapOffset != 0 && !LoadHeightData(reader, FileHeader.HeightMapOffset, FileHeader.HeightMapSize))
                     throw new InvalidOperationException();

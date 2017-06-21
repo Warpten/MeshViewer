@@ -3,7 +3,7 @@ using System;
 
 namespace MeshViewer.Memory
 {
-    public sealed class CGCamera_C
+    public sealed class CGCamera
     {
         public IntPtr BaseAddress => Game.Read<IntPtr>(Game.Read<IntPtr>(0xAD7A10) + 0x80D0, true);
 
