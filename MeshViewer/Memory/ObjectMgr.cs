@@ -1,5 +1,6 @@
 ﻿using MeshViewer.Memory.Entities;
 using MeshViewer.Memory.Enums;
+using MeshViewer.Memory.Offsets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,8 +9,6 @@ namespace MeshViewer.Memory
 {
     public sealed class ObjectMgr
     {
-        private const int CurMgrPointer = 0x9BE7E0;
-        private const int CurMgrOffset  = 0x463C;
         private const int NextObject    = 0x3C;
         private const int FirstObject   = 0xC;
         private const int LocalGUID     = 0xC8;
@@ -105,31 +104,33 @@ namespace MeshViewer.Memory
 
             while (currentObject != uint.MinValue && currentObject % 2 == uint.MinValue)
             {
-                var entityObject = new CGObject_C(new IntPtr(currentObject));
-                switch (entityObject.Type)
+                CGObject_C entityObject;
+                switch (Game.Read<ObjectType>((int)(currentObject + 0x14), true))
                 {
+                    default:
                     case ObjectType.Object:
+                        entityObject = new CGObject_C(new IntPtr(currentObject));
                         break;
                     case ObjectType.Unit:
-                        entityObject = entityObject.ToUnit();
+                        entityObject = new CGUnit_C(new IntPtr(currentObject));
                         break;
                     case ObjectType.Player:
-                        entityObject = entityObject.ToPlayer();
+                        entityObject = new CGPlayer_C(new IntPtr(currentObject));
                         break;
                     case ObjectType.GameObject:
-                        entityObject = entityObject.ToGameObject();
+                        entityObject = new CGGameObject_C(new IntPtr(currentObject));
                         break;
                     case ObjectType.Container:
-                        entityObject = entityObject.ToContainer();
+                        entityObject = new CGContainer_C(new IntPtr(currentObject));
                         break;
                     case ObjectType.Item:
-                        entityObject = entityObject.ToItem();
+                        entityObject = new CGItem_C(new IntPtr(currentObject));
                         break;
                 }
 
                 yield return entityObject;
 
-                currentObject = (uint)Game.Read<IntPtr>(new IntPtr(currentObject) + NextObject, true);
+                currentObject = (uint)Game.Read<IntPtr>((int)(currentObject + NextObject), true);
             }
         }
 
@@ -138,7 +139,7 @@ namespace MeshViewer.Memory
         /// </summary>
         public void Update()
         {
-            _currentManager = Game.Read<IntPtr>(Game.Read<int>(CurMgrPointer) + CurMgrOffset, true);
+            _currentManager = Game.Read<IntPtr>(Game.Read<int>(Cataclysm.CurMgrPointer) + Cataclysm.CurMgrOffset, true);
             _localGUID = Game.Read<ulong>(_currentManager + LocalGUID, true);
 
             var newEntities = Enumerate().ToDictionary(@object => @object.OBJECT_FIELD_GUID.Value);
@@ -146,7 +147,11 @@ namespace MeshViewer.Memory
             foreach (var oldEntity in _entities)
             {
                 if (newEntities.ContainsKey(oldEntity.Key))
+                {
+                    oldEntity.Value.UpdateBaseAddress(newEntities[oldEntity.Key].BaseAddress);
+
                     OnUpdate?.Invoke(oldEntity.Value);
+                }
                 else
                     OnDespawn?.Invoke(oldEntity.Value);
             }
@@ -161,7 +166,7 @@ namespace MeshViewer.Memory
             OnUpdateTick?.Invoke();
         }
 
-        public bool InGame => Game.Read<byte>(0x00ED7427) == 0;
-        public int CurrentMap => Game.Read<int>(_currentManager + 0xD4, true);
+        public bool InGame => Game.Read<byte>(Cataclysm.OnLoginScreen) == 0;
+        public int CurrentMap => Game.Read<int>(_currentManager + Cataclysm.CurMapoffset, true);
     }
 }

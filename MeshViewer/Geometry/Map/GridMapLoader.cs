@@ -209,19 +209,19 @@ namespace MeshViewer.Geometry.Map
             switch (corner)
             {
                 case 1: // Top
-                    terrainIndice[2] = square + rowOffset;               //   0-----1 .... 128
-                    terrainIndice[0] = square + rowOffset + 1;           //   |\ T /|
-                    terrainIndice[1] = V9_SIZE_SQ + square;              //   | \ / |
-                    break;                                               //   |L 0 R| .. 127
-                case 3: // Left                                          //   | / \ |
-                    terrainIndice[2] = square + rowOffset;               //   |/ B \|
-                    terrainIndice[0] = V9_SIZE_SQ + square;              //  129---130 ... 386
-                    terrainIndice[1] = square + V9_SIZE + rowOffset;     //   |\   /|
-                    break;                                               //   | \ / |
-                case 2: // Right                                         //   | 128 | .. 255
-                    terrainIndice[2] = square + 1 + rowOffset;           //   | / \ |
-                    terrainIndice[0] = square + V9_SIZE + rowOffset + 1; //   |/   \|
-                    terrainIndice[1] = V9_SIZE_SQ + square;              //  258---259 ... 515
+                    terrainIndice[2] = square + rowOffset;               //  0-----1 .... 128
+                    terrainIndice[0] = square + rowOffset + 1;           //  |\ T /|
+                    terrainIndice[1] = V9_SIZE_SQ + square;              //  | \ / |
+                    break;                                               //  |L 0 R| .. 127
+                case 3: // Left                                          //  | / \ |
+                    terrainIndice[2] = square + rowOffset;               //  |/ B \|
+                    terrainIndice[0] = V9_SIZE_SQ + square;              // 129---130 ... 386
+                    terrainIndice[1] = square + V9_SIZE + rowOffset;     //  |\   /|
+                    break;                                               //  | \ / |
+                case 2: // Right                                         //  | 128 | .. 255
+                    terrainIndice[2] = square + 1 + rowOffset;           //  | / \ |
+                    terrainIndice[0] = square + V9_SIZE + rowOffset + 1; //  |/   \|
+                    terrainIndice[1] = V9_SIZE_SQ + square;              // 258---259 ... 515
                     break;
                 case 4: // Bottom
                     terrainIndice[2] = V9_SIZE_SQ + square;

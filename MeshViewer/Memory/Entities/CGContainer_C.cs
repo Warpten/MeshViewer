@@ -18,7 +18,7 @@ namespace MeshViewer.Memory.Entities
         }
 
         #region General
-        [Category("General")]
+        [Category("General"), RefreshProperties(RefreshProperties.All)]
         public IEnumerable<CGItem_C> Items
         {
             get
@@ -29,13 +29,13 @@ namespace MeshViewer.Memory.Entities
         }
         #endregion
 
-        [Category("Container Descriptors")]
+        [Category("Container Descriptors"), RefreshProperties(RefreshProperties.All)]
         public int CONTAINER_FIELD_NUM_SLOTS     => GetUpdateField<int>(ContainerFields.CONTAINER_FIELD_NUM_SLOTS);
 
-        [Category("Container Descriptors")]
+        [Category("Container Descriptors"), RefreshProperties(RefreshProperties.All)]
         public int CONTAINER_ALIGN_PAD           => GetUpdateField<int>(ContainerFields.CONTAINER_ALIGN_PAD);
 
-        [Category("Container Descriptors")]
+        [Category("Container Descriptors"), RefreshProperties(RefreshProperties.All)]
         public ObjectGuid[] CONTAINER_FIELD_SLOT => GetUpdateField<ObjectGuid>(ContainerFields.CONTAINER_FIELD_SLOT_1, 72);
 
         private enum ContainerFields

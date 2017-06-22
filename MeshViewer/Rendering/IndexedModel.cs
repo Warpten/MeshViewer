@@ -60,6 +60,13 @@ namespace MeshViewer.Rendering
             return true;
         }
 
+        public void Unload()
+        {
+            GL.DeleteBuffer(VBO);
+            GL.DeleteBuffer(EBO);
+            GL.DeleteVertexArray(VAO);
+        }
+
         public void Render()
         {
             if (!Valid)

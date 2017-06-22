@@ -63,9 +63,7 @@ namespace MeshViewer.Interface
                     if (Game.InGame && Game.LocalPlayer != null)
                         BeginInvoke((Action)(() => toolStripStatusLabel1.Text = $"Logged in as {Game.LocalPlayer.Name} (Map #{Game.CurrentMap})"));
 
-                    glControl1.Invalidate();
-
-                    _clientUpdaterToken.Token.WaitHandle.WaitOne(ObjectMgr.UpdateFrequency);
+                    // _clientUpdaterToken.Token.WaitHandle.WaitOne(ObjectMgr.UpdateFrequency);
                 }
 
             }, _clientUpdaterToken.Token);
@@ -209,6 +207,8 @@ namespace MeshViewer.Interface
             _playerExplorer.SetDataSource(Game.Players);
             _unitExplorer.SetDataSource(Game.Units);
             _gameObjectExplorer.SetDataSource(Game.GameObjects);
+
+            BeginInvoke((Action)(() => glControl1.Invalidate()));
         }
 
         #region Terrain Rendering

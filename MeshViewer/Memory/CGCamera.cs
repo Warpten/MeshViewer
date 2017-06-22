@@ -1,11 +1,12 @@
-﻿using OpenTK;
+﻿using MeshViewer.Memory.Offsets;
+using OpenTK;
 using System;
 
 namespace MeshViewer.Memory
 {
     public sealed class CGCamera
     {
-        public IntPtr BaseAddress => Game.Read<IntPtr>(Game.Read<IntPtr>(0xAD7A10) + 0x80D0, true);
+        public IntPtr BaseAddress => Game.Read<IntPtr>(Game.Read<IntPtr>(Cataclysm.WorldFramePtr) + 0x80D0, true);
 
         public float X => Game.Read<float>(BaseAddress + 0x8, true);
         public float Y => Game.Read<float>(BaseAddress + 0xC, true);

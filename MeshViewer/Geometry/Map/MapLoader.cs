@@ -4,6 +4,7 @@ using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace MeshViewer.Geometry.Map
 {
@@ -26,12 +27,18 @@ namespace MeshViewer.Geometry.Map
             var gridHash = PackTile(tileX, tileY);
             if (Grids.ContainsKey(gridHash))
                 return;
-
-            var gridLoader = new GridMapLoader(Directory, MapID, tileX, tileY) {
-                Program = ShaderProgramCache.Instance.Get("terrain")
-            };
-            if (gridLoader.FileExists)
-                Grids[gridHash] = gridLoader;
+            
+            // Placeholder until the task executes
+            Grids[gridHash] = null;
+            Task.Factory.StartNew(() =>
+            {
+                var gridLoader = new GridMapLoader(Directory, MapID, tileX, tileY)
+                {
+                    Program = ShaderProgramCache.Instance.Get("terrain")
+                };
+                if (gridLoader.FileExists)
+                    lock (Grids) Grids[gridHash] = gridLoader;
+            });
         }
 
         private int PackTile(int x, int y) => ((x & 0xFF) << 8) | (y & 0xFF);
@@ -48,14 +55,21 @@ namespace MeshViewer.Geometry.Map
             terrainProgram.UniformMatrix4("modelViewProjection", false, ref projModelView);
             terrainProgram.UniformVector3("camera_direction", ref cameraDirection);
 
-            for (var i = centerTileY - MAX_CHUNK_DISTANCE; i <= centerTileY + MAX_CHUNK_DISTANCE; ++i)
-                for (var j = centerTileX - MAX_CHUNK_DISTANCE; j <= centerTileX + MAX_CHUNK_DISTANCE; ++j)
-                    if (!Grids.ContainsKey(PackTile(j, i)))
-                        LoadTile(j, i);
+            lock (Grids)
+            {
+                foreach (var grid in Grids)
+                    if (grid.Value != null && Math.Abs(grid.Value.X - centerTileX) > MAX_CHUNK_DISTANCE && Math.Abs(grid.Value.Y - centerTileY) > MAX_CHUNK_DISTANCE)
+                        grid.Value.Unload();
 
-            foreach (var mapGrid in Grids.Values)
-                if (Math.Abs(centerTileX - mapGrid.X) <= MAX_CHUNK_DISTANCE && Math.Abs(centerTileY - mapGrid.Y) <= MAX_CHUNK_DISTANCE)
-                    mapGrid.Render();
+                for (var i = centerTileY - MAX_CHUNK_DISTANCE; i <= centerTileY + MAX_CHUNK_DISTANCE; ++i)
+                    for (var j = centerTileX - MAX_CHUNK_DISTANCE; j <= centerTileX + MAX_CHUNK_DISTANCE; ++j)
+                        if (!Grids.ContainsKey(PackTile(j, i)))
+                            LoadTile(j, i);
+
+                foreach (var mapGrid in Grids.Values)
+                    if (mapGrid != null && Math.Abs(centerTileX - mapGrid.X) <= MAX_CHUNK_DISTANCE && Math.Abs(centerTileY - mapGrid.Y) <= MAX_CHUNK_DISTANCE)
+                        mapGrid.Render();
+            }
         }
 
         ~MapLoader()

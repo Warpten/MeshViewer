@@ -9,9 +9,9 @@ using MeshViewer.Memory.Enums;
 
 namespace MeshViewer.Interface.Controls
 {
-    public partial class EntityExplorer : UserControl
+    public partial class EntityControl : UserControl
     {
-        public EntityExplorer()
+        public EntityControl()
         {
             InitializeComponent();
 

@@ -9,7 +9,7 @@ namespace MeshViewer.Memory.Entities
     public class CGObject_C
     {
         [Browsable(false)]
-        public IntPtr BaseAddress { get; }
+        public IntPtr BaseAddress { get; private set; }
 
         private IntPtr _updateFields;
 
@@ -43,22 +43,22 @@ namespace MeshViewer.Memory.Entities
         #endregion
 
         #region Descriptors
-        [Category("Object Descriptors")]
+        [Category("Object Descriptors"), RefreshProperties(RefreshProperties.All)]
         public ObjectGuid OBJECT_FIELD_GUID    => GetUpdateField<ObjectGuid>(ObjectFields.OBJECT_FIELD_GUID);
 
-        [Category("Object Descriptors")]
+        [Category("Object Descriptors"), RefreshProperties(RefreshProperties.All)]
         public ulong OBJECT_FIELD_DATA    => GetUpdateField<ulong>(ObjectFields.OBJECT_FIELD_DATA);
 
-        [Category("Object Descriptors")]
+        [Category("Object Descriptors"), RefreshProperties(RefreshProperties.All)]
         public int OBJECT_FIELD_TYPE      => GetUpdateField<int>(ObjectFields.OBJECT_FIELD_TYPE);
 
-        [Category("Object Descriptors")]
+        [Category("Object Descriptors"), RefreshProperties(RefreshProperties.All)]
         public int OBJECT_FIELD_ENTRY     => GetUpdateField<int>(ObjectFields.OBJECT_FIELD_ENTRY);
 
-        [Category("Object Descriptors")]
+        [Category("Object Descriptors"), RefreshProperties(RefreshProperties.All)]
         public float OBJECT_FIELD_SCALE_X => GetUpdateField<float>(ObjectFields.OBJECT_FIELD_SCALE_X);
 
-        [Category("Object Descriptors")]
+        [Category("Object Descriptors"), RefreshProperties(RefreshProperties.All)]
         public int OBJECT_FIELD_PADDING   => GetUpdateField<int>(ObjectFields.OBJECT_FIELD_PADDING);
         #endregion
 
@@ -85,6 +85,12 @@ namespace MeshViewer.Memory.Entities
         public CGContainer_C  ToContainer()  => Type == ObjectType.Container  ? new CGContainer_C(BaseAddress) : null;
         public CGItem_C       ToItem()       => Type == ObjectType.Item       ? new CGItem_C(BaseAddress) : null;
         #endregion
+
+        public void UpdateBaseAddress(IntPtr baseAddr)
+        {
+            BaseAddress = baseAddr;
+            Refresh();
+        }
 
         protected enum ObjectFields : int
         {

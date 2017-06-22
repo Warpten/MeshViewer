@@ -74,7 +74,7 @@ namespace MeshViewer.Geometry.Model
 
             Vertices = null;
             Indices = null;
-            _instancePositions = null;
+            // _instancePositions = null;
 
             return true;
         }

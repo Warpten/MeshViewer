@@ -17,45 +17,45 @@ namespace MeshViewer.Memory.Entities
         }
 
         #region General
-        [Category("General")]
-        public CGUnit_C CreatedBy => Game.GetEntity<CGUnit_C>(OBJECT_FIELD_CREATED_BY);
-
-        [Category("General")]
+        [Category("General"), RefreshProperties(RefreshProperties.All)]
         public string Name => ReadCString(Read<IntPtr>(Read<IntPtr>(BaseAddress + 0x1CC) + 0xB4), 100);
 
-        [Category("General")]
+        [Category("General"), RefreshProperties(RefreshProperties.All)]
         public float X => Read<float>(0x110);
 
-        [Category("General")]
+        [Category("General"), RefreshProperties(RefreshProperties.All)]
         public float Y => Read<float>(0x114);
 
-        [Category("General")]
+        [Category("General"), RefreshProperties(RefreshProperties.All)]
         public float Z => Read<float>(0x118);
+
+        [Category("General"), RefreshProperties(RefreshProperties.All)]
+        public CGUnit_C CreatedBy => Game.GetEntity<CGUnit_C>(OBJECT_FIELD_CREATED_BY);
         #endregion
 
         #region Descriptors
-        [Category("GameObject Descriptors")]
+        [Category("GameObject Descriptors"), RefreshProperties(RefreshProperties.All)]
         public ObjectGuid OBJECT_FIELD_CREATED_BY=> GetUpdateField<ObjectGuid>(GameObjectFields.OBJECT_FIELD_CREATED_BY);
 
-        [Category("GameObject Descriptors")]
+        [Category("GameObject Descriptors"), RefreshProperties(RefreshProperties.All)]
         public int GAMEOBJECT_DISPLAYID          => GetUpdateField<int>(GameObjectFields.GAMEOBJECT_DISPLAYID);
 
-        [Category("GameObject Descriptors")]
+        [Category("GameObject Descriptors"), RefreshProperties(RefreshProperties.All)]
         public int GAMEOBJECT_FLAGS              => GetUpdateField<int>(GameObjectFields.GAMEOBJECT_FLAGS);
 
-        [Category("GameObject Descriptors")]
+        [Category("GameObject Descriptors"), RefreshProperties(RefreshProperties.All)]
         public float[] GAMEOBJECT_PARENTROTATION => GetUpdateField<float>(GameObjectFields.GAMEOBJECT_PARENTROTATION, 4);
 
-        [Category("GameObject Descriptors")]
+        [Category("GameObject Descriptors"), RefreshProperties(RefreshProperties.All)]
         public short[] GAMEOBJECT_DYNAMIC        => GetUpdateField<short>(GameObjectFields.GAMEOBJECT_DYNAMIC, 2);
 
-        [Category("GameObject Descriptors")]
+        [Category("GameObject Descriptors"), RefreshProperties(RefreshProperties.All)]
         public int GAMEOBJECT_FACTION            => GetUpdateField<int>(GameObjectFields.GAMEOBJECT_FACTION);
 
-        [Category("GameObject Descriptors")]
+        [Category("GameObject Descriptors"), RefreshProperties(RefreshProperties.All)]
         public int GAMEOBJECT_LEVEL              => GetUpdateField<int>(GameObjectFields.GAMEOBJECT_LEVEL);
 
-        [Category("GameObject Descriptors")]
+        [Category("GameObject Descriptors"), RefreshProperties(RefreshProperties.All)]
         public int GAMEOBJECT_BYTES_1            => GetUpdateField<int>(GameObjectFields.GAMEOBJECT_BYTES_1);
         #endregion
 

@@ -1,5 +1,4 @@
 ﻿using MeshViewer.Geometry.Model;
-using MeshViewer.Rendering;
 using System.Collections.Generic;
 using System.IO;
 
@@ -49,6 +48,11 @@ namespace MeshViewer.Geometry.Vmap
                 foreach (var groupModel in modelInstance.Model.GroupModels)
                     groupModel.InvertIndices();
             }
+        }
+
+        public void Unload()
+        {
+            Spawns.Clear();
         }
 
         public void Render()

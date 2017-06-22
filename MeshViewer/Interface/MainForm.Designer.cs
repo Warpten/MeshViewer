@@ -40,11 +40,11 @@
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.glControl1 = new OpenTK.GLControl(new OpenTK.Graphics.GraphicsMode(new OpenTK.Graphics.ColorFormat(32), 32, 8, 4), 4, 1, OpenTK.Graphics.GraphicsContextFlags.Debug | OpenTK.Graphics.GraphicsContextFlags.ForwardCompatible);
             this.tabPage2 = new System.Windows.Forms.TabPage();
-            this._playerExplorer = new MeshViewer.Interface.Controls.EntityExplorer();
+            this._playerExplorer = new MeshViewer.Interface.Controls.EntityControl();
             this.tabPage3 = new System.Windows.Forms.TabPage();
-            this._unitExplorer = new MeshViewer.Interface.Controls.EntityExplorer();
+            this._unitExplorer = new MeshViewer.Interface.Controls.EntityControl();
             this.tabPage4 = new System.Windows.Forms.TabPage();
-            this._gameObjectExplorer = new MeshViewer.Interface.Controls.EntityExplorer();
+            this._gameObjectExplorer = new MeshViewer.Interface.Controls.EntityControl();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.menuStrip1.SuspendLayout();
@@ -273,15 +273,15 @@
         private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.TabPage tabPage3;
         private System.Windows.Forms.TabPage tabPage4;
-        private Controls.EntityExplorer _playerExplorer;
+        private Controls.EntityControl _playerExplorer;
         private System.Windows.Forms.ToolStripMenuItem refreshToolStripMenuItem;
-        private Controls.EntityExplorer _unitExplorer;
+        private Controls.EntityControl _unitExplorer;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.ToolStripMenuItem loadGeometryToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
         private OpenTK.GLControl glControl1;
         private System.Windows.Forms.ToolStripMenuItem captureScreenshotToolStripMenuItem;
-        private Controls.EntityExplorer _gameObjectExplorer;
+        private Controls.EntityControl _gameObjectExplorer;
     }
 }

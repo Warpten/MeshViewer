@@ -111,11 +111,11 @@
     <Compile Include="Geometry\Model\WorldModel.cs" />
     <Compile Include="Geometry\Vmap\VMapLoader.cs" />
     <Compile Include="Geometry\Vmap\VMapTileLoader.cs" />
-    <Compile Include="Interface\Controls\EntityExplorer.cs">
+    <Compile Include="Interface\Controls\EntityControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Interface\Controls\EntityExplorer.Designer.cs">
-      <DependentUpon>EntityExplorer.cs</DependentUpon>
+    <Compile Include="Interface\Controls\EntityControl.Designer.cs">
+      <DependentUpon>EntityControl.cs</DependentUpon>
     </Compile>
     <Compile Include="Interface\MainForm.cs">
       <SubType>Form</SubType>
@@ -146,6 +146,7 @@
     <Compile Include="Memory\Game.cs" />
     <Compile Include="Memory\ObjectGuid.cs" />
     <Compile Include="Memory\ObjectMgr.cs" />
+    <Compile Include="Memory\Offsets\Cataclysm.cs" />
     <Compile Include="Memory\SizeCache.cs" />
     <Compile Include="Memory\UnsafeMethods.cs" />
     <Compile Include="Program.cs" />
@@ -161,8 +162,8 @@
     <Compile Include="Rendering\Shader.cs" />
     <Compile Include="Rendering\ShaderProgram.cs" />
     <Compile Include="Rendering\Textures\TerrainTexture.cs" />
-    <EmbeddedResource Include="Interface\Controls\EntityExplorer.resx">
-      <DependentUpon>EntityExplorer.cs</DependentUpon>
+    <EmbeddedResource Include="Interface\Controls\EntityControl.resx">
+      <DependentUpon>EntityControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Interface\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>

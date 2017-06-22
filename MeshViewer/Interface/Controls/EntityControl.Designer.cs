@@ -1,6 +1,6 @@
 ﻿namespace MeshViewer.Interface.Controls
 {
-    partial class EntityExplorer
+    partial class EntityControl
     {
         /// <summary> 
         /// Required designer variable.
@@ -30,10 +30,10 @@
         {
             this.listView1 = new BrightIdeasSoftware.FastObjectListView();
             this.olvColumn1 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
-            this.entityGrid = new System.Windows.Forms.PropertyGrid();
             this._filterBox = new System.Windows.Forms.ComboBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
+            this.entityGrid = new System.Windows.Forms.PropertyGrid();
             ((System.ComponentModel.ISupportInitialize)(this.listView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -82,16 +82,6 @@
             this.olvColumn1.MinimumWidth = 249;
             this.olvColumn1.Width = 249;
             // 
-            // entityGrid
-            // 
-            this.entityGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.entityGrid.HelpVisible = false;
-            this.entityGrid.Location = new System.Drawing.Point(0, 0);
-            this.entityGrid.Name = "entityGrid";
-            this.entityGrid.PropertySort = System.Windows.Forms.PropertySort.Categorized;
-            this.entityGrid.Size = new System.Drawing.Size(492, 632);
-            this.entityGrid.TabIndex = 1;
-            // 
             // _filterBox
             // 
             this._filterBox.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -115,7 +105,7 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.entityGrid);
-            this.splitContainer1.Size = new System.Drawing.Size(746, 632);
+            this.splitContainer1.Size = new System.Drawing.Size(1151, 632);
             this.splitContainer1.SplitterDistance = 250;
             this.splitContainer1.TabIndex = 3;
             // 
@@ -138,13 +128,21 @@
             this.splitContainer2.SplitterDistance = 25;
             this.splitContainer2.TabIndex = 0;
             // 
-            // EntityExplorer
+            // entityGrid
+            // 
+            this.entityGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.entityGrid.Location = new System.Drawing.Point(0, 0);
+            this.entityGrid.Name = "entityGrid";
+            this.entityGrid.Size = new System.Drawing.Size(897, 632);
+            this.entityGrid.TabIndex = 0;
+            // 
+            // EntityControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.splitContainer1);
-            this.Name = "EntityExplorer";
-            this.Size = new System.Drawing.Size(746, 632);
+            this.Name = "EntityControl";
+            this.Size = new System.Drawing.Size(1151, 632);
             ((System.ComponentModel.ISupportInitialize)(this.listView1)).EndInit();
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
@@ -162,9 +160,9 @@
 
         private BrightIdeasSoftware.FastObjectListView listView1;
         private BrightIdeasSoftware.OLVColumn olvColumn1;
-        private System.Windows.Forms.PropertyGrid entityGrid;
         private System.Windows.Forms.ComboBox _filterBox;
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.SplitContainer splitContainer2;
+        private System.Windows.Forms.PropertyGrid entityGrid;
     }
 }
