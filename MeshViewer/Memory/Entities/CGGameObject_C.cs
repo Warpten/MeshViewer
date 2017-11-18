@@ -1,4 +1,5 @@
 ﻿using MeshViewer.Memory.Enums;
+using MeshViewer.Memory.Enums.UpdateFields;
 using System;
 using System.ComponentModel;
 
@@ -17,25 +18,25 @@ namespace MeshViewer.Memory.Entities
         }
 
         #region General
-        [Category("General"), RefreshProperties(RefreshProperties.All)]
+        [Category("General")]
         public string Name => ReadCString(Read<IntPtr>(Read<IntPtr>(BaseAddress + 0x1CC) + 0xB4), 100);
 
-        [Category("General"), RefreshProperties(RefreshProperties.All)]
+        [Category("General")]
         public float X => Read<float>(0x110);
 
-        [Category("General"), RefreshProperties(RefreshProperties.All)]
+        [Category("General")]
         public float Y => Read<float>(0x114);
 
-        [Category("General"), RefreshProperties(RefreshProperties.All)]
+        [Category("General")]
         public float Z => Read<float>(0x118);
 
-        [Category("General"), RefreshProperties(RefreshProperties.All)]
+        [Category("General")]
         public CGUnit_C CreatedBy => Game.GetEntity<CGUnit_C>(OBJECT_FIELD_CREATED_BY);
         #endregion
 
         #region Descriptors
-        [Category("GameObject Descriptors"), RefreshProperties(RefreshProperties.All)]
-        public ObjectGuid OBJECT_FIELD_CREATED_BY=> GetUpdateField<ObjectGuid>(GameObjectFields.OBJECT_FIELD_CREATED_BY);
+        [Category("GameObject Descriptors")]
+        public ObjectGuid OBJECT_FIELD_CREATED_BY => GetUpdateField<ObjectGuid>(GameObjectFields.OBJECT_FIELD_CREATED_BY);
 
         [Category("GameObject Descriptors"), RefreshProperties(RefreshProperties.All)]
         public int GAMEOBJECT_DISPLAYID          => GetUpdateField<int>(GameObjectFields.GAMEOBJECT_DISPLAYID);
@@ -49,10 +50,10 @@ namespace MeshViewer.Memory.Entities
         [Category("GameObject Descriptors"), RefreshProperties(RefreshProperties.All)]
         public short[] GAMEOBJECT_DYNAMIC        => GetUpdateField<short>(GameObjectFields.GAMEOBJECT_DYNAMIC, 2);
 
-        [Category("GameObject Descriptors"), RefreshProperties(RefreshProperties.All)]
+        [Category("GameObject Descriptors")]
         public int GAMEOBJECT_FACTION            => GetUpdateField<int>(GameObjectFields.GAMEOBJECT_FACTION);
 
-        [Category("GameObject Descriptors"), RefreshProperties(RefreshProperties.All)]
+        [Category("GameObject Descriptors")]
         public int GAMEOBJECT_LEVEL              => GetUpdateField<int>(GameObjectFields.GAMEOBJECT_LEVEL);
 
         [Category("GameObject Descriptors"), RefreshProperties(RefreshProperties.All)]
@@ -76,17 +77,9 @@ namespace MeshViewer.Memory.Entities
         public byte AnimProgress => (byte)((GAMEOBJECT_BYTES_1 >> 24) & 0xFF);
         #endregion
 
-        protected enum GameObjectFields
+        public override CGGameObject_C ToGameObject()
         {
-            OBJECT_FIELD_CREATED_BY   = ObjectFields.OBJECT_END + 0x0000, // Size: 2, Type: LONG, Flags: PUBLIC
-            GAMEOBJECT_DISPLAYID      = ObjectFields.OBJECT_END + 0x0002, // Size: 1, Type: INT, Flags: PUBLIC
-            GAMEOBJECT_FLAGS          = ObjectFields.OBJECT_END + 0x0003, // Size: 1, Type: INT, Flags: PUBLIC
-            GAMEOBJECT_PARENTROTATION = ObjectFields.OBJECT_END + 0x0004, // Size: 4, Type: FLOAT, Flags: PUBLIC
-            GAMEOBJECT_DYNAMIC        = ObjectFields.OBJECT_END + 0x0008, // Size: 1, Type: TWO_SHORT, Flags: DYNAMIC
-            GAMEOBJECT_FACTION        = ObjectFields.OBJECT_END + 0x0009, // Size: 1, Type: INT, Flags: PUBLIC
-            GAMEOBJECT_LEVEL          = ObjectFields.OBJECT_END + 0x000A, // Size: 1, Type: INT, Flags: PUBLIC
-            GAMEOBJECT_BYTES_1        = ObjectFields.OBJECT_END + 0x000B, // Size: 1, Type: BYTES, Flags: PUBLIC
-            GAMEOBJECT_END            = ObjectFields.OBJECT_END + 0x000C
+            return this;
         }
     }
 }

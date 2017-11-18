@@ -131,10 +131,11 @@
             // entityGrid
             // 
             this.entityGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.entityGrid.LineColor = System.Drawing.SystemColors.Control;
             this.entityGrid.Location = new System.Drawing.Point(0, 0);
             this.entityGrid.Name = "entityGrid";
             this.entityGrid.Size = new System.Drawing.Size(897, 632);
-            this.entityGrid.TabIndex = 0;
+            this.entityGrid.TabIndex = 1;
             // 
             // EntityControl
             // 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MeshViewer.Memory.Enums.UpdateFields;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace MeshViewer.Memory.Entities
         }
 
         #region General
-        [Category("General"), RefreshProperties(RefreshProperties.All)]
+        [Category("General")]
         public IEnumerable<CGItem_C> Items
         {
             get
@@ -29,21 +30,16 @@ namespace MeshViewer.Memory.Entities
         }
         #endregion
 
-        [Category("Container Descriptors"), RefreshProperties(RefreshProperties.All)]
+        [Category("Container Descriptors")]
         public int CONTAINER_FIELD_NUM_SLOTS     => GetUpdateField<int>(ContainerFields.CONTAINER_FIELD_NUM_SLOTS);
 
-        [Category("Container Descriptors"), RefreshProperties(RefreshProperties.All)]
-        public int CONTAINER_ALIGN_PAD           => GetUpdateField<int>(ContainerFields.CONTAINER_ALIGN_PAD);
+        // [Category("Container Descriptors"), RefreshProperties(RefreshProperties.All)]
+        // public int CONTAINER_ALIGN_PAD           => GetUpdateField<int>(ContainerFields.CONTAINER_ALIGN_PAD);
 
         [Category("Container Descriptors"), RefreshProperties(RefreshProperties.All)]
         public ObjectGuid[] CONTAINER_FIELD_SLOT => GetUpdateField<ObjectGuid>(ContainerFields.CONTAINER_FIELD_SLOT_1, 72);
 
-        private enum ContainerFields
-        {
-            CONTAINER_FIELD_NUM_SLOTS                        = ItemFields.ITEM_END + 0x0000, // Size: 1, Type: INT, Flags: PUBLIC
-            CONTAINER_ALIGN_PAD                              = ItemFields.ITEM_END + 0x0001, // Size: 1, Type: BYTES, Flags: NONE
-            CONTAINER_FIELD_SLOT_1                           = ItemFields.ITEM_END + 0x0002, // Size: 72, Type: LONG, Flags: PUBLIC
-            CONTAINER_END                                    = ItemFields.ITEM_END + 0x004A
-        }
+        public override CGContainer_C ToContainer() => this;
+        public override CGItem_C ToItem() => this;
     }
 }

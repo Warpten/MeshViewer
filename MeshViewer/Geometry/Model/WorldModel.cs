@@ -7,7 +7,7 @@ namespace MeshViewer.Geometry.Model
     public sealed class WorldModel
     {
         public GroupModel[] GroupModels { get; set; }
-        public BIH GroupTree { get; }
+        // public BIH GroupTree { get; }
         public int RootWmoID { get; }
 
         public WorldModel(string directory, string modelName)
@@ -37,7 +37,7 @@ namespace MeshViewer.Geometry.Model
                     }
 
                     if (reader.ReadInt32() == 0x48494247) // GIH
-                        GroupTree = new BIH(reader);
+                        BIH.Skip(reader);
                 }
             }
         }
@@ -49,10 +49,10 @@ namespace MeshViewer.Geometry.Model
 
         public static WorldModel OpenInstance(string directory, string modelName)
         {
-            WorldModel instance;
-            if (!_instance._store.TryGetValue(modelName, out instance))
-                instance = _instance._store[modelName] = new WorldModel(directory, modelName);
-            return instance;
+            lock (_instance._store)
+                if (!_instance._store.ContainsKey(modelName))
+                    _instance._store.Add(modelName, new WorldModel(directory, modelName));
+            return _instance._store[modelName];
         }
 
         private static WorldModelCache _instance = new WorldModelCache();

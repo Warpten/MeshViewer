@@ -1,4 +1,5 @@
 ﻿using MeshViewer.Memory.Enums;
+using MeshViewer.Memory.Enums.UpdateFields;
 using System;
 using System.ComponentModel;
 using System.Text;
@@ -43,7 +44,7 @@ namespace MeshViewer.Memory.Entities
         #endregion
 
         #region Descriptors
-        [Category("Object Descriptors"), RefreshProperties(RefreshProperties.All)]
+        [Category("Object Descriptors")]
         public ObjectGuid OBJECT_FIELD_GUID    => GetUpdateField<ObjectGuid>(ObjectFields.OBJECT_FIELD_GUID);
 
         [Category("Object Descriptors"), RefreshProperties(RefreshProperties.All)]
@@ -58,8 +59,8 @@ namespace MeshViewer.Memory.Entities
         [Category("Object Descriptors"), RefreshProperties(RefreshProperties.All)]
         public float OBJECT_FIELD_SCALE_X => GetUpdateField<float>(ObjectFields.OBJECT_FIELD_SCALE_X);
 
-        [Category("Object Descriptors"), RefreshProperties(RefreshProperties.All)]
-        public int OBJECT_FIELD_PADDING   => GetUpdateField<int>(ObjectFields.OBJECT_FIELD_PADDING);
+        // [Browsable(false)]
+        // public int OBJECT_FIELD_PADDING   => GetUpdateField<int>(ObjectFields.OBJECT_FIELD_PADDING);
         #endregion
 
         public override string ToString() => $"Object: {OBJECT_FIELD_GUID} [Type: {Type}]";
@@ -68,7 +69,7 @@ namespace MeshViewer.Memory.Entities
         public ObjectType Type => Read<ObjectType>(BaseAddress + 0x14);
 
         #region Type conversion
-        public CGUnit_C ToUnit()
+        public virtual CGUnit_C ToUnit()
         {
             switch (Type)
             {
@@ -80,27 +81,22 @@ namespace MeshViewer.Memory.Entities
             }
         }
 
-        public CGPlayer_C     ToPlayer()     => Type == ObjectType.Player     ? new CGPlayer_C(BaseAddress) : null;
-        public CGGameObject_C ToGameObject() => Type == ObjectType.GameObject ? new CGGameObject_C(BaseAddress) : null;
-        public CGContainer_C  ToContainer()  => Type == ObjectType.Container  ? new CGContainer_C(BaseAddress) : null;
-        public CGItem_C       ToItem()       => Type == ObjectType.Item       ? new CGItem_C(BaseAddress) : null;
+        public virtual CGPlayer_C     ToPlayer()     => Type == ObjectType.Player     ? new CGPlayer_C(BaseAddress) : null;
+        public virtual CGGameObject_C ToGameObject() => Type == ObjectType.GameObject ? new CGGameObject_C(BaseAddress) : null;
+        public virtual CGContainer_C  ToContainer()  => Type == ObjectType.Container  ? new CGContainer_C(BaseAddress) : null;
+        public virtual CGItem_C       ToItem()       => Type == ObjectType.Item       ? new CGItem_C(BaseAddress) : null;
         #endregion
 
         public void UpdateBaseAddress(IntPtr baseAddr)
         {
             BaseAddress = baseAddr;
+
+            Updated = true;
+
             Refresh();
         }
 
-        protected enum ObjectFields : int
-        {
-            OBJECT_FIELD_GUID = 0x0,
-            OBJECT_FIELD_DATA = 0x2,
-            OBJECT_FIELD_TYPE = 0x4,
-            OBJECT_FIELD_ENTRY = 0x5,
-            OBJECT_FIELD_SCALE_X = 0x6,
-            OBJECT_FIELD_PADDING = 0x7,
-            OBJECT_END = 0x8
-        }
+        [Browsable(false)]
+        public bool Updated { get; set; } = true;
     }
 }

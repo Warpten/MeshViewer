@@ -3,9 +3,7 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace MeshViewer.Rendering
 {
@@ -95,6 +93,11 @@ namespace MeshViewer.Rendering
         public void UniformVector3(string uniformName, ref Vector3 vector)
         {
             GL.Uniform3(Uniforms[uniformName], ref vector);
+        }
+
+        public void UniformVector2(string uniformName, ref Vector2 vector)
+        {
+            GL.Uniform2(Uniforms[uniformName], ref vector);
         }
 
         public void Use() => GL.UseProgram(Program);

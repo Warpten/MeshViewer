@@ -43,6 +43,8 @@ namespace MeshViewer.Geometry.Map
 
         private int PackTile(int x, int y) => ((x & 0xFF) << 8) | (y & 0xFF);
 
+        private static Vector3 TERRAIN_COLOR = new Vector3(0.7f, 0.7f, 0.0f);
+
         public void Render(int centerTileX, int centerTileY)
         {
             const int MAX_CHUNK_DISTANCE = 1; /// Debugging
@@ -54,6 +56,7 @@ namespace MeshViewer.Geometry.Map
             terrainProgram.Use();
             terrainProgram.UniformMatrix4("modelViewProjection", false, ref projModelView);
             terrainProgram.UniformVector3("camera_direction", ref cameraDirection);
+            terrainProgram.UniformVector3("object_color", ref TERRAIN_COLOR);
 
             lock (Grids)
             {

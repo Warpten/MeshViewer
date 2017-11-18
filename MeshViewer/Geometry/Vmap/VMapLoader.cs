@@ -2,7 +2,6 @@
 using MeshViewer.Memory;
 using MeshViewer.Rendering;
 using OpenTK;
-using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,7 +12,7 @@ namespace MeshViewer.Geometry.Vmap
     public sealed class VMapLoader
     {
         public bool IsTiled { get; }
-        private BIH BIH { get; }
+        // private BIH BIH { get; }
         public int MapID { get; }
 
         public ModelSpawn GlobalModel { get; }
@@ -37,7 +36,7 @@ namespace MeshViewer.Geometry.Vmap
                 IsTiled = reader.ReadByte() == 1;
 
                 if (reader.ReadInt32() == 0x45444F4E) // NODE
-                    BIH = new BIH(reader);
+                    BIH.Skip(reader);
                 
                 if (!IsTiled && reader.ReadInt32() == 0x4A424F47) // GOBJ
                     GlobalModel = new ModelSpawn(directory, reader);
@@ -62,6 +61,7 @@ namespace MeshViewer.Geometry.Vmap
 
         private int PackTile(int x, int y) => ((x & 0xFF) << 8) | (y & 0xFF);
 
+        static Vector3 WMO_COLOR = new Vector3(0.0f, 0.7f, 0.0f);
         public void Render(int centerTileX, int centerTileY)
         {
             if (IsTiled)
@@ -73,6 +73,7 @@ namespace MeshViewer.Geometry.Vmap
                 wmoProgram.Use();
                 wmoProgram.UniformMatrix4("projection_view", false, ref view);
                 wmoProgram.UniformVector3("camera_direction", ref cameraDirection);
+                wmoProgram.UniformVector3("object_color", ref WMO_COLOR);
 
                 const int MAX_CHUNK_DISTANCE = 1; /// Debugging
 

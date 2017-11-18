@@ -82,11 +82,11 @@
     </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\OpenTK.dll</HintPath>
+      <HintPath>bin\Release\OpenTK.dll</HintPath>
     </Reference>
     <Reference Include="OpenTK.GLControl, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\OpenTK.GLControl.dll</HintPath>
+      <HintPath>bin\Release\OpenTK.GLControl.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -111,11 +111,23 @@
     <Compile Include="Geometry\Model\WorldModel.cs" />
     <Compile Include="Geometry\Vmap\VMapLoader.cs" />
     <Compile Include="Geometry\Vmap\VMapTileLoader.cs" />
+    <Compile Include="Interface\ComponentModel\Collection.cs" />
+    <Compile Include="Interface\ComponentModel\CollectionConverter.cs" />
+    <Compile Include="Interface\ComponentModel\JamClientAuraCollection.cs" />
     <Compile Include="Interface\Controls\EntityControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Interface\Controls\EntityControl.Designer.cs">
       <DependentUpon>EntityControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Interface\Controls\ListViews.Renderers\EntityListRenderer.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Interface\Controls\ListViews.Renderers\GameobjectListRenderer.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Interface\Controls\ListViews.Renderers\ObjectListRenderer.cs">
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="Interface\MainForm.cs">
       <SubType>Form</SubType>
@@ -139,15 +151,23 @@
     <Compile Include="Memory\Entities\UpdateFields\ItemEnchantmentDescriptor.cs" />
     <Compile Include="Memory\Entities\UpdateFields\QuestDescriptor.cs" />
     <Compile Include="Memory\Enums\Class.cs" />
+    <Compile Include="Memory\Enums\UpdateFields\ContainerFields.cs" />
+    <Compile Include="Memory\Enums\UpdateFields\GameObjectFields.cs" />
     <Compile Include="Memory\Enums\GameObjectType.cs" />
     <Compile Include="Memory\Enums\Gender.cs" />
+    <Compile Include="Memory\Enums\UpdateFields\ItemFields.cs" />
+    <Compile Include="Memory\Enums\NPCFlag.cs" />
+    <Compile Include="Memory\Enums\UpdateFields\ObjectFields.cs" />
     <Compile Include="Memory\Enums\ObjectType.cs" />
+    <Compile Include="Memory\Enums\UpdateFields\PlayerFields.cs" />
+    <Compile Include="Memory\Enums\UpdateFields\UnitFields.cs" />
     <Compile Include="Memory\Enums\UnitRace.cs" />
     <Compile Include="Memory\Game.cs" />
     <Compile Include="Memory\ObjectGuid.cs" />
     <Compile Include="Memory\ObjectMgr.cs" />
     <Compile Include="Memory\Offsets\Cataclysm.cs" />
     <Compile Include="Memory\SizeCache.cs" />
+    <Compile Include="Memory\Structures\JamClientAuraInfo.cs" />
     <Compile Include="Memory\UnsafeMethods.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -206,9 +226,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Interface\Icons\Attach.png" />
-    <None Include="Interface\Icons\Screenshot.png" />
     <Content Include="OpenTK.dll" />
     <Content Include="OpenTK.GLControl.dll" />
+    <None Include="Interface\Icons\Screenshot.png" />
     <None Include="Interface\Icons\Compass.png" />
     <Content Include="Interface\Icons\Map.png" />
     <Content Include="Interface\Icons\Monster.png" />

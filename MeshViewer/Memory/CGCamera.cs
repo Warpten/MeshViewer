@@ -26,8 +26,8 @@ namespace MeshViewer.Memory
         public Matrix4 View => Matrix4.LookAt(XYZ, XYZ + Forward, Vector3.UnitZ);
 
         public float AspectRatio { get; set; } = 800.0f / 600.0f;
-        public float NearClip { get; set; } = 0.1f; //  Game.Read<float>(0xE8909C + 44); // CVar (nearClip)
-        public float FarClip { get; set; } = 1000.0f; //  Game.Read<float>(0xE890A0 + 44); // CVar (farClip)
+        public float NearClip { get; set; } = 0.5f; //  Game.Read<float>(0xE8909C + 44); // CVar (nearClip)
+        public float FarClip { get; set; } = 2500.0f; //  Game.Read<float>(0xE890A0 + 44); // CVar (farClip)
 
     }
 }

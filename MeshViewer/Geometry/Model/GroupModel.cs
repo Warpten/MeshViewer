@@ -3,19 +3,24 @@ using System.IO;
 using MeshViewer.Rendering;
 using MeshViewer.Memory;
 using System.Collections.Generic;
-using System.Linq;
-using System;
 
 namespace MeshViewer.Geometry.Model
 {
     public sealed class GroupModel : InstancedIndexedModel<Vector3, uint>
     {
-        public BIH Tree { get; }
+        // public BIH Tree { get; }
         public Vector3[] Vertices { get; private set; }
         public uint[] Indices { get; private set; }
 
         private List<Matrix4> _instancePositions = new List<Matrix4>();
-        public List<Matrix4> Positions => _instancePositions;
+        public List<Matrix4> Positions
+        {
+            get
+            {
+                lock (_instancePositions)
+                    return _instancePositions;
+            }
+        }
 
         public GroupModel(BinaryReader reader)
         {
@@ -44,7 +49,7 @@ namespace MeshViewer.Geometry.Model
             }
 
             if (reader.ReadInt32() == 0x4849424D) // MBIH
-                Tree = new BIH(reader);
+                BIH.Skip(reader);
 
             if (reader.ReadInt32() == 0x5551494C) // LIQU
             {
@@ -63,14 +68,16 @@ namespace MeshViewer.Geometry.Model
 
         public void AddInstance(Matrix4 spawn)
         {
-            _instancePositions.Add(spawn);
+            lock (_instancePositions)
+                _instancePositions.Add(spawn);
         }
 
         protected override bool BindData(ref Vector3[] vertices, ref uint[] indices, ref Matrix4[] instancePositions)
         {
             vertices = Vertices;
             indices = Indices;
-            instancePositions = _instancePositions.ToArray();
+            lock (_instancePositions)
+                instancePositions = _instancePositions.ToArray();
 
             Vertices = null;
             Indices = null;

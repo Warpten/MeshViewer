@@ -1,5 +1,5 @@
 ﻿using MeshViewer.Geometry;
-using MeshViewer.Interface.Controls;
+using MeshViewer.Interface.Controls.ListViews.Renderers;
 using MeshViewer.Memory;
 using MeshViewer.Memory.Entities;
 using MeshViewer.Memory.Enums;
@@ -29,6 +29,7 @@ namespace MeshViewer.Interface
 
         public MainForm()
         {
+            OpenTK.Toolkit.Init();
             InitializeComponent();
         }
 
@@ -60,12 +61,18 @@ namespace MeshViewer.Interface
                 {
                     Game.Update();
 
-                    if (Game.InGame && Game.LocalPlayer != null)
-                        BeginInvoke((Action)(() => toolStripStatusLabel1.Text = $"Logged in as {Game.LocalPlayer.Name} (Map #{Game.CurrentMap})"));
+                    BeginInvoke((Action)(() => {
+                        if (!Game.InGame)
+                            return;
 
-                    // _clientUpdaterToken.Token.WaitHandle.WaitOne(ObjectMgr.UpdateFrequency);
+                        var localPlayer = Game.LocalPlayer;
+
+                        if (localPlayer != null)
+                            toolStripStatusLabel1.Text = $"Logged in as {localPlayer.Name} (Map #{Game.CurrentMap})";
+                    }));
+
+                    _clientUpdaterToken.Token.WaitHandle.WaitOne(ObjectMgr.UpdateFrequency);
                 }
-
             }, _clientUpdaterToken.Token);
         }
 
@@ -133,38 +140,38 @@ namespace MeshViewer.Interface
 
             #region Rendering
 #if DEBUG
-            glControl1.Context.ErrorChecking = true;
-
+            // glControl1.Context.ErrorChecking = true;
+            // 
             // GL.Enable(EnableCap.DebugOutput);
             // GL.Enable(EnableCap.DebugOutputSynchronous);
-            /*GL.DebugMessageCallback((DebugSource source, DebugType type, int id, DebugSeverity severity, int length, IntPtr messagePtr, IntPtr errorParam) =>
-            {
-                if (id == 131169 || id == 131185 || id == 131218 || id == 131204)
-                    return;
-
-                var oldForegroundColor = Console.ForegroundColor;
-
-                var message = new string((sbyte*)messagePtr, 0, length, Encoding.ASCII);
-
-                switch (severity)
-                {
-                    case DebugSeverity.DebugSeverityNotification:
-                        Console.ForegroundColor = ConsoleColor.DarkYellow;
-                        break;
-                    case DebugSeverity.DebugSeverityHigh:
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        break;
-                    case DebugSeverity.DebugSeverityMedium:
-                        Console.ForegroundColor = ConsoleColor.Blue;
-                        break;
-                    case DebugSeverity.DebugSeverityLow:
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        break;
-                }
-
-                Console.WriteLine(message);
-                Console.ForegroundColor = oldForegroundColor;
-            }, IntPtr.Zero);*/
+            // GL.DebugMessageCallback((DebugSource source, DebugType type, int id, DebugSeverity severity, int length, IntPtr messagePtr, IntPtr errorParam) =>
+            // {
+            //     if (id == 131169 || id == 131185 || id == 131218 || id == 131204)
+            //         return;
+            // 
+            //     var oldForegroundColor = Console.ForegroundColor;
+            // 
+            //     var message = new string((sbyte*)messagePtr, 0, length, System.Text.Encoding.ASCII);
+            // 
+            //     switch (severity)
+            //     {
+            //         case DebugSeverity.DebugSeverityNotification:
+            //             Console.ForegroundColor = ConsoleColor.DarkYellow;
+            //             break;
+            //         case DebugSeverity.DebugSeverityHigh:
+            //             Console.ForegroundColor = ConsoleColor.Red;
+            //             break;
+            //         case DebugSeverity.DebugSeverityMedium:
+            //             Console.ForegroundColor = ConsoleColor.Blue;
+            //             break;
+            //         case DebugSeverity.DebugSeverityLow:
+            //             Console.ForegroundColor = ConsoleColor.Green;
+            //             break;
+            //     }
+            // 
+            //     Console.WriteLine(message);
+            //     Console.ForegroundColor = oldForegroundColor;
+            // }, IntPtr.Zero);
 
 #endif
             glControl1.Paint += (_, __) => Render();
@@ -176,9 +183,15 @@ namespace MeshViewer.Interface
             };
 
             GL.ClearColor(Color.Black);
-            GL.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+
             GL.Enable(EnableCap.DepthTest);
-            GL.Enable(EnableCap.Multisample);
+            GL.DepthFunc(DepthFunction.Less);
+
+            GL.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+            
+            // GL.Enable(EnableCap.Multisample);
+
+            // Disable backface culling just in case
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
 
@@ -208,7 +221,13 @@ namespace MeshViewer.Interface
             _unitExplorer.SetDataSource(Game.Units);
             _gameObjectExplorer.SetDataSource(Game.GameObjects);
 
-            BeginInvoke((Action)(() => glControl1.Invalidate()));
+            BeginInvoke((Action)(() =>
+            {
+                if (GeometryLoader == null)
+                    return;
+
+                glControl1.Invalidate();
+            }));
         }
 
         #region Terrain Rendering
@@ -244,7 +263,7 @@ namespace MeshViewer.Interface
             {
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-                if (Game.IsValid && GeometryLoader != null)
+                if (Game.IsValid && GeometryLoader != null && Game.LocalPlayer != null)
                 {
                     var tileX = (int)Math.Floor(32 - Game.LocalPlayer.X / 533.3333f);
                     var tileY = (int)Math.Floor(32 - Game.LocalPlayer.Y / 533.3333f);
@@ -268,7 +287,6 @@ namespace MeshViewer.Interface
             GL.ReadPixels(0, 0, glControl1.ClientSize.Width, glControl1.ClientSize.Height, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, PixelType.UnsignedByte, data.Scan0);
             bmp.UnlockBits(data);
             bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
-
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {

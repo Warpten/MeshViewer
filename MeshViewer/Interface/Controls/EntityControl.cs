@@ -4,8 +4,7 @@ using BrightIdeasSoftware;
 using MeshViewer.Memory.Entities;
 using System.Collections.Generic;
 using System.Drawing;
-using MeshViewer.Properties;
-using MeshViewer.Memory.Enums;
+using MeshViewer.Interface.Controls.ListViews.Renderers;
 
 namespace MeshViewer.Interface.Controls
 {
@@ -40,12 +39,15 @@ namespace MeshViewer.Interface.Controls
         /// <param name="instance">The instance that is being removed.</param>
         public void OnDespawn(CGObject_C instance)
         {
-            if (entityGrid.SelectedObjects?.Length == 0)
-                return;
+            entityGrid.Invoke((Action)(() =>
+            {
+                if (entityGrid.SelectedObjects?.Length == 0)
+                    return;
 
-            var selectedObject = entityGrid.SelectedObject as CGObject_C;
-            if (instance.OBJECT_FIELD_GUID == selectedObject.OBJECT_FIELD_GUID)
-                entityGrid.BeginInvoke((Action)(() => { entityGrid.SelectedObject = null; }));
+                var selectedObject = entityGrid.SelectedObject as CGObject_C;
+                if (instance.OBJECT_FIELD_GUID == selectedObject.OBJECT_FIELD_GUID)
+                    entityGrid.SelectedObject = null;
+            }));
         }
 
         public void SetFilterSource<T>()
@@ -76,13 +78,18 @@ namespace MeshViewer.Interface.Controls
         /// <param name="instance">The currently updated instance.</param>
         public void OnUpdate(CGObject_C instance)
         {
-            if (entityGrid.SelectedObjects?.Length == 0)
-                return;
-            
-            // Force the property grid to re-load values.
-            var selectedObject = entityGrid.SelectedObject as CGObject_C;
-            if (instance.OBJECT_FIELD_GUID == selectedObject.OBJECT_FIELD_GUID)
-                entityGrid.BeginInvoke((Action)(() => { entityGrid.SelectedObjects = entityGrid.SelectedObjects; }));
+            BeginInvoke((Action)(() =>
+            {
+                if (entityGrid.SelectedObjects?.Length == 0)
+                    return;
+
+                // Force the property grid to re-load values.
+                var selectedObject = entityGrid.SelectedObject as CGObject_C;
+                if (instance.OBJECT_FIELD_GUID == selectedObject.OBJECT_FIELD_GUID)
+                {
+                    entityGrid.Refresh();
+                }
+            }));
         }
 
         /// <summary>
@@ -115,6 +122,7 @@ namespace MeshViewer.Interface.Controls
                 if (!(genericType.IsAssignableFrom(typeof(T))))
                     throw new InvalidOperationException("Type mismatch between the renderer and the provided collection!");
             }
+            
             listView1.Objects = elements;
         }
 
@@ -127,64 +135,6 @@ namespace MeshViewer.Interface.Controls
         private void OnCellClick(object sender, CellClickEventArgs e)
         {
             entityGrid.SelectedObject = e.Model;
-        }
-    }
-
-    public abstract class ObjectListRenderer<T> : DescribedTaskRenderer where T : CGObject_C
-    {
-        public Type Type => typeof(T);
-
-        public override string GetDescription(object model) => GetDescription(model as T);
-
-        protected abstract string GetDescription(T model);
-        public virtual void BindExtra(OLVColumn column) { }
-    }
-
-    public sealed class GameobjectListRenderer : ObjectListRenderer<CGGameObject_C>
-    {
-        protected override string GetDescription(CGGameObject_C model)
-        {
-            return $"Type: {model.ObjectType}";
-        }
-    }
-
-    /// <summary>
-    /// A renderer suited for rendering both players and units.
-    /// </summary>
-    public sealed class EntityListRenderer : ObjectListRenderer<CGUnit_C>
-    {
-        public override void BindExtra(OLVColumn column)
-        {
-            column.ImageGetter = GetClassImage;
-        }
-
-        public object GetClassImage(object model)
-        {
-            if (!(model is CGPlayer_C))
-                return null;
-
-            var player = model as CGUnit_C;
-            switch (player.Class)
-            {
-                case Class.Warrior:     return new Bitmap(Resources.Warrior,     new Size(45, 45));
-                case Class.Paladin:     return new Bitmap(Resources.Paladin,     new Size(45, 45));
-                case Class.Hunter:      return new Bitmap(Resources.Hunter,      new Size(45, 45));
-                case Class.Rogue:       return new Bitmap(Resources.Rogue,       new Size(45, 45));
-                case Class.Priest:      return new Bitmap(Resources.Priest,      new Size(45, 45));
-                case Class.DeathKnight: return new Bitmap(Resources.DeathKnight, new Size(45, 45));
-                case Class.Shaman:      return new Bitmap(Resources.Shaman,      new Size(45, 45));
-                case Class.Mage:        return new Bitmap(Resources.Mage,        new Size(45, 45));
-                case Class.Warlock:     return new Bitmap(Resources.Warlock,     new Size(45, 45));
-                case Class.Druid:       return new Bitmap(Resources.Druid,       new Size(45, 45));
-            }
-            return Resources.Priest;
-        }
-
-        protected override string GetDescription(CGUnit_C model)
-        {
-            if (model.Type == ObjectType.Player)
-                return $"Level {model.UNIT_FIELD_LEVEL} {model.Gender} {model.Race} {model.Class}";
-            return $"Level {model.UNIT_FIELD_LEVEL} {model.Gender} {model.Class}";
         }
     }
 }

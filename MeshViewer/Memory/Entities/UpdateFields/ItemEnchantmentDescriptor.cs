@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace MeshViewer.Memory.Entities.UpdateFields
+﻿namespace MeshViewer.Memory.Entities.UpdateFields
 {
     public struct ItemEnchantmentDescriptor
     {

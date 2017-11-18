@@ -72,10 +72,8 @@ namespace MeshViewer.Rendering
             if (!Valid)
                 _GenerateGeometry();
 
-            if (!Valid)
-                return;
-
-            _Render();
+            if (Valid)
+                _Render();
         }
 
         public virtual void _Render()

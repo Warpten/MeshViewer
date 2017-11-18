@@ -1,7 +1,6 @@
 ﻿using MeshViewer.Geometry.Map;
 using MeshViewer.Geometry.Vmap;
 using MeshViewer.Memory;
-using MeshViewer.Rendering;
 
 namespace MeshViewer.Geometry
 {

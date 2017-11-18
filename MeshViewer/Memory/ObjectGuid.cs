@@ -6,27 +6,27 @@ namespace MeshViewer.Memory
     {
         public ulong Value { get; }
 
-        bool IsEmpty()             => Value == 0L;
-        bool IsCreature()          => GetHigh() == HighGuid.Unit;
-        bool IsPet()               => GetHigh() == HighGuid.Pet;
-        bool IsVehicle()           => GetHigh() == HighGuid.Vehicle;
-        bool IsCreatureOrPet()     => IsCreature() || IsPet();
-        bool IsCreatureOrVehicle() => IsCreature() || IsVehicle();
-        bool IsAnyTypeCreature()   => IsCreature() || IsPet() || IsVehicle();
-        bool IsPlayer()            => !IsEmpty() && GetHigh() == HighGuid.Player;
-        bool IsUnit()              => IsAnyTypeCreature() || IsPlayer();
-        bool IsItem()              => GetHigh() == HighGuid.Item;
-        bool IsGameObject()        => GetHigh() == HighGuid.GameObject;
-        bool IsDynamicObject()     => GetHigh() == HighGuid.DynamicObject;
-        bool IsCorpse()            => GetHigh() == HighGuid.Corpse;
-        bool IsAreaTrigger()       => GetHigh() == HighGuid.AreaTrigger;
-        bool IsBattleground()      => GetHigh() == HighGuid.Battleground;
-        bool IsTransport()         => GetHigh() == HighGuid.Transport;
-        bool IsMOTransport()       => GetHigh() == HighGuid.MoTransport;
-        bool IsAnyTypeGameObject() => IsGameObject() || IsTransport() || IsMOTransport();
-        bool IsInstance()          => GetHigh() == HighGuid.Instance;
-        bool IsGroup()             => GetHigh() == HighGuid.Group;
-        bool IsGuild()             => GetHigh() == HighGuid.Guild;
+        public bool IsEmpty()             => Value == 0L;
+        public bool IsCreature()          => GetHigh() == HighGuid.Unit;
+        public bool IsPet()               => GetHigh() == HighGuid.Pet;
+        public bool IsVehicle()           => GetHigh() == HighGuid.Vehicle;
+        public bool IsCreatureOrPet()     => IsCreature() || IsPet();
+        public bool IsCreatureOrVehicle() => IsCreature() || IsVehicle();
+        public bool IsAnyTypeCreature()   => IsCreature() || IsPet() || IsVehicle();
+        public bool IsPlayer()            => !IsEmpty() && GetHigh() == HighGuid.Player;
+        public bool IsUnit()              => IsAnyTypeCreature() || IsPlayer();
+        public bool IsItem()              => GetHigh() == HighGuid.Item;
+        public bool IsGameObject()        => GetHigh() == HighGuid.GameObject;
+        public bool IsDynamicObject()     => GetHigh() == HighGuid.DynamicObject;
+        public bool IsCorpse()            => GetHigh() == HighGuid.Corpse;
+        public bool IsAreaTrigger()       => GetHigh() == HighGuid.AreaTrigger;
+        public bool IsBattleground()      => GetHigh() == HighGuid.Battleground;
+        public bool IsTransport()         => GetHigh() == HighGuid.Transport;
+        public bool IsMOTransport()       => GetHigh() == HighGuid.MoTransport;
+        public bool IsAnyTypeGameObject() => IsGameObject() || IsTransport() || IsMOTransport();
+        public bool IsInstance()          => GetHigh() == HighGuid.Instance;
+        public bool IsGroup()             => GetHigh() == HighGuid.Group;
+        public bool IsGuild()             => GetHigh() == HighGuid.Guild;
         
         HighGuid GetHigh()
         {

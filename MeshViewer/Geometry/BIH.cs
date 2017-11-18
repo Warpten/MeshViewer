@@ -22,5 +22,14 @@ namespace MeshViewer.Geometry
             var objectCount = reader.ReadInt32();
             Objects = reader.Read<uint>(objectCount);
         }
+
+        public static void Skip(BinaryReader @in)
+        {
+            @in.BaseStream.Position += (3 + 3) * 4;
+            var count = @in.ReadInt32();
+            @in.BaseStream.Position += count * 4; // tree
+            count = @in.ReadInt32();
+            @in.BaseStream.Position += count * 4; // objects
+        }
     }
 }

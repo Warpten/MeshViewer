@@ -24,7 +24,7 @@ namespace MeshViewer.Memory
         public event Action<CGObject_C> OnSpawn;
         public event Action OnUpdateTick;
 
-        public static int UpdateFrequency { get; set; } = 50;
+        public static int UpdateFrequency { get; set; } = 100;
 
         public ObjectMgr()
         {
@@ -96,41 +96,15 @@ namespace MeshViewer.Memory
         /// Enumerates over every entities.
         /// </summary>
         /// <returns></returns>
-        private IEnumerable<CGObject_C> Enumerate()
+        private IEnumerable<IntPtr> Enumerate()
         {
-            var currentObject = (uint)Game.Read<IntPtr>(_currentManager + FirstObject, true);
+            var currentObject = Game.Read<IntPtr>(_currentManager + FirstObject, true);
 
-            _localGUID = Game.Read<ulong>(_currentManager + LocalGUID, true);
-
-            while (currentObject != uint.MinValue && currentObject % 2 == uint.MinValue)
+            while (currentObject.ToInt32() != uint.MinValue && currentObject.ToInt32() % 2 == uint.MinValue)
             {
-                CGObject_C entityObject;
-                switch (Game.Read<ObjectType>((int)(currentObject + 0x14), true))
-                {
-                    default:
-                    case ObjectType.Object:
-                        entityObject = new CGObject_C(new IntPtr(currentObject));
-                        break;
-                    case ObjectType.Unit:
-                        entityObject = new CGUnit_C(new IntPtr(currentObject));
-                        break;
-                    case ObjectType.Player:
-                        entityObject = new CGPlayer_C(new IntPtr(currentObject));
-                        break;
-                    case ObjectType.GameObject:
-                        entityObject = new CGGameObject_C(new IntPtr(currentObject));
-                        break;
-                    case ObjectType.Container:
-                        entityObject = new CGContainer_C(new IntPtr(currentObject));
-                        break;
-                    case ObjectType.Item:
-                        entityObject = new CGItem_C(new IntPtr(currentObject));
-                        break;
-                }
+                yield return currentObject;
 
-                yield return entityObject;
-
-                currentObject = (uint)Game.Read<IntPtr>((int)(currentObject + NextObject), true);
+                currentObject = Game.Read<IntPtr>(currentObject.ToInt32() + NextObject, true);
             }
         }
 
@@ -142,26 +116,55 @@ namespace MeshViewer.Memory
             _currentManager = Game.Read<IntPtr>(Game.Read<int>(Cataclysm.CurMgrPointer) + Cataclysm.CurMgrOffset, true);
             _localGUID = Game.Read<ulong>(_currentManager + LocalGUID, true);
 
-            var newEntities = Enumerate().ToDictionary(@object => @object.OBJECT_FIELD_GUID.Value);
+            foreach (var oldEntitiy in _entities)
+                oldEntitiy.Value.Updated = false;
 
-            foreach (var oldEntity in _entities)
+            foreach (var newEntityPtr in Enumerate())
             {
-                if (newEntities.ContainsKey(oldEntity.Key))
-                {
-                    oldEntity.Value.UpdateBaseAddress(newEntities[oldEntity.Key].BaseAddress);
+                var updateFieldOffset = Game.Read<IntPtr>(newEntityPtr + 0xC, true);
+                var objectGuid = Game.Read<ObjectGuid>(updateFieldOffset, true);
 
-                    OnUpdate?.Invoke(oldEntity.Value);
+                if (_entities.ContainsKey(objectGuid))
+                {
+                    _entities[objectGuid].UpdateBaseAddress(newEntityPtr);
+
+                    OnUpdate?.Invoke(_entities[objectGuid]);
                 }
                 else
-                    OnDespawn?.Invoke(oldEntity.Value);
+                {
+                    switch (Game.Read<ObjectType>(newEntityPtr + 0x14, true))
+                    {
+                        default:
+                        case ObjectType.Object:
+                            _entities[objectGuid] = new CGObject_C(newEntityPtr);
+                            break;
+                        case ObjectType.Unit:
+                            _entities[objectGuid] = new CGUnit_C(newEntityPtr);
+                            break;
+                        case ObjectType.Player:
+                            _entities[objectGuid] = new CGPlayer_C(newEntityPtr);
+                            break;
+                        case ObjectType.GameObject:
+                            _entities[objectGuid] = new CGGameObject_C(newEntityPtr);
+                            break;
+                        case ObjectType.Container:
+                            _entities[objectGuid] = new CGContainer_C(newEntityPtr);
+                            break;
+                        case ObjectType.Item:
+                            _entities[objectGuid] = new CGItem_C(newEntityPtr);
+                            break;
+                    }
+
+                    OnSpawn?.Invoke(_entities[objectGuid]);
+                }
             }
 
-            foreach (var newEntity in newEntities)
-                if (!_entities.ContainsKey(newEntity.Key))
-                    OnSpawn?.Invoke(newEntity.Value);
+            foreach (var removalKey in _entities.Where(kv => !kv.Value.Updated).Select(kv => kv.Key).ToList())
+            {
+                OnDespawn?.Invoke(_entities[removalKey]);
 
-            _entities.Clear();
-            _entities = newEntities;
+                _entities.Remove(removalKey);
+            }
 
             OnUpdateTick?.Invoke();
         }
