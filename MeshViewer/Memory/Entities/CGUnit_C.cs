@@ -42,14 +42,17 @@ namespace MeshViewer.Memory.Entities
         [Category("General")]
         public virtual UnitRace Race => (UnitRace)((UNIT_FIELD_BYTES_0 >> 0) & 0xFF);
 
-        [Browsable(false), RefreshProperties(RefreshProperties.All)]
-        public virtual float Speed => Read<float>(Read<IntPtr>(BaseAddress + 0x100) + 0x80);
-
         [Category("General")]
         public virtual Gender Gender => (Gender)((UNIT_FIELD_BYTES_0 >> 16) & 0xFF);
 
         [Category("General")]
         public virtual Class Class => (Class)((UNIT_FIELD_BYTES_0 >> 8) & 0xFF);
+
+        [Category("General"), RefreshProperties(RefreshProperties.All)]
+        public virtual uint PowerType => (uint)((UNIT_FIELD_BYTES_0 >> 24) & 0xFF);
+
+        [Browsable(false), RefreshProperties(RefreshProperties.All)]
+        public virtual float Speed => Read<float>(Read<IntPtr>(BaseAddress + 0x100) + 0x80);
         #endregion
 
         #region Unit
@@ -283,7 +286,7 @@ namespace MeshViewer.Memory.Entities
             return this;
         }
 
-        [TypeConverter(typeof(ExpandableObjectConverter))]
+        // [TypeConverter(typeof(EnumerableConverter<CGUnit_C>))]
         public virtual IEnumerable<CGUnit_C> Minions
         {
             get
@@ -294,12 +297,13 @@ namespace MeshViewer.Memory.Entities
             }
         }
 
-
         public JamClientAuraCollection Auras
         {
             get
             {
                 var auraCount = Read<int>(BaseAddress + 0xE90);
+
+                var collection = new JamClientAuraCollection();
                 
                 if (auraCount == -1)
                 {
@@ -310,7 +314,7 @@ namespace MeshViewer.Memory.Entities
                     {
                         var entry = Read<JamClientAuraInfo>(auraTable + SizeCache<JamClientAuraInfo>.Size * i);
                         if (entry.SpellID != 0)
-                            yield return entry;
+                            collection.Add(entry);
                     }
                 }
                 else
@@ -319,9 +323,11 @@ namespace MeshViewer.Memory.Entities
                     {
                         var entry = Read<JamClientAuraInfo>(BaseAddress + 0xC10 + SizeCache<JamClientAuraInfo>.Size * i);
                         if (entry.SpellID != 0)
-                            yield return entry;
+                            collection.Add(entry);
                     }
                 }
+
+                return collection;
             }
         }
     }

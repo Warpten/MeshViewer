@@ -101,11 +101,15 @@ namespace MeshViewer.Interface.ComponentModel
             private readonly Collection<T> _collection;
             private readonly int _index;
 
-            public CollectionPropertyDescriptor(Collection<T> collection, int index) : base(collection[index].ToString(), null)
+            public CollectionPropertyDescriptor(Collection<T> collection, int index) : base($"[{index}]", null)
             {
                 _collection = collection;
                 _index = index;
+
+                DisplayName = $"[{index}]";
             }
+
+            public override string DisplayName { get; }
 
             private static AttributeCollection EmptyAttributeCollection = new AttributeCollection(null);
 
@@ -119,7 +123,7 @@ namespace MeshViewer.Interface.ComponentModel
             public override void SetValue(object component, object value) { }
             public override bool ShouldSerializeValue(object component) => false;
             public override Type ComponentType => _collection.GetType();
-            public override bool IsReadOnly => false;
+            public override bool IsReadOnly => true;
 
             public override Type PropertyType { get; } = typeof(T);
         }

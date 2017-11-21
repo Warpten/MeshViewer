@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace MeshViewer.Geometry.Vmap
+namespace MeshViewer.Geometry.Buildings
 {
-    public sealed class VMapTileLoader
+    public sealed class BuildingsTileLoader
     {
         private Dictionary<string, ModelSpawn> Spawns { get; set; } = new Dictionary<string, ModelSpawn>();
         public int MapID { get; }
@@ -12,7 +12,7 @@ namespace MeshViewer.Geometry.Vmap
         public int Y { get; }
         public bool FileExists { get; }
 
-        public VMapTileLoader(string directory, int mapID, int tileX, int tileY)
+        public BuildingsTileLoader(string directory, int mapID, int tileX, int tileY)
         {
             X = tileX;
             Y = tileY;
@@ -35,8 +35,7 @@ namespace MeshViewer.Geometry.Vmap
 
                     if (!Spawns.ContainsKey(modelSpawn.Name))
                         Spawns.Add(modelSpawn.Name, modelSpawn);
-                    // else
-                    //     // Instance already added in ModelSpawn constructor
+                    // No else statement, ctor adds the instance already
                 }
             }
 
@@ -45,8 +44,7 @@ namespace MeshViewer.Geometry.Vmap
                 if (!modelInstance.Name.EndsWith(".m2"))
                     continue;
 
-                foreach (var groupModel in modelInstance.Model.GroupModels)
-                    groupModel.InvertIndices();
+                modelInstance.InvertIndices();
             }
         }
 
@@ -58,8 +56,7 @@ namespace MeshViewer.Geometry.Vmap
         public void Render()
         {
             foreach (var modelInstance in Spawns.Values)
-                foreach (var model in modelInstance.Model.GroupModels)
-                    model.Render();
+                modelInstance.Render();
         }
     }
 }

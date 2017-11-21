@@ -1,4 +1,5 @@
-﻿using MeshViewer.Geometry;
+﻿using MeshViewer.Data;
+using MeshViewer.Geometry;
 using MeshViewer.Interface.Controls.ListViews.Renderers;
 using MeshViewer.Memory;
 using MeshViewer.Memory.Entities;
@@ -23,10 +24,6 @@ namespace MeshViewer.Interface
     {
         private CancellationTokenSource _clientUpdaterToken;
 
-        #region Terrain Rendering
-        private GeometryLoader GeometryLoader { get; set; }
-        #endregion
-
         public MainForm()
         {
             OpenTK.Toolkit.Init();
@@ -38,7 +35,7 @@ namespace MeshViewer.Interface
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnAttachRequest(object sender, EventArgs e)
+        private async void OnAttachRequest(object sender, EventArgs e)
         {
             if (_wowComboBox.SelectedIndex == -1)
                 return;
@@ -51,12 +48,13 @@ namespace MeshViewer.Interface
             _clientUpdaterToken = new CancellationTokenSource();
 
             Game.Open(selectedProcess.ID);
-            Game.OnUpdateTick += OnUpdateTick;
 
-            Game.OnDespawn += _playerExplorer.OnDespawn;
-            Game.OnUpdate += _playerExplorer.OnUpdate;
+            Game.OnWorldUpdate += OnWorldUpdate;
 
-            Task.Factory.StartNew(() => {
+            Game.OnEntityDespawn += _playerExplorer.OnDespawn;
+            Game.OnEntityUpdated += _playerExplorer.OnUpdate;
+
+            await Task.Run(() => {
                 while (!_clientUpdaterToken.IsCancellationRequested)
                 {
                     Game.Update();
@@ -83,7 +81,9 @@ namespace MeshViewer.Interface
         /// <param name="e"></param>
         private void OnFormClose(object sender, FormClosingEventArgs e)
         {
-            Game.OnUpdateTick -= OnUpdateTick;
+            Game.OnWorldUpdate -= OnWorldUpdate;
+            Game.OnEntityDespawn -= _playerExplorer.OnDespawn;
+            Game.OnEntityUpdated -= _playerExplorer.OnUpdate;
 
             _clientUpdaterToken?.Token.Register(Game.Close);
             _clientUpdaterToken?.Cancel();
@@ -140,7 +140,7 @@ namespace MeshViewer.Interface
 
             #region Rendering
 #if DEBUG
-            // glControl1.Context.ErrorChecking = true;
+            // _renderControl.Context.ErrorChecking = true;
             // 
             // GL.Enable(EnableCap.DebugOutput);
             // GL.Enable(EnableCap.DebugOutputSynchronous);
@@ -174,12 +174,12 @@ namespace MeshViewer.Interface
             // }, IntPtr.Zero);
 
 #endif
-            glControl1.Paint += (_, __) => Render();
-            glControl1.Resize += (_, __) => {
-                GL.Viewport(0, 0, glControl1.Width, glControl1.Height);
+            _renderControl.Paint += (_, __) => RenderGeometry();
+            _renderControl.Resize += (_, __) => {
+                GL.Viewport(0, 0, _renderControl.Width, _renderControl.Height);
 
                 if (Game.Camera != null)
-                    Game.Camera.AspectRatio = glControl1.Width / (float)glControl1.Height;
+                    Game.Camera.AspectRatio = _renderControl.Width / (float)_renderControl.Height;
             };
 
             GL.ClearColor(Color.Black);
@@ -192,8 +192,8 @@ namespace MeshViewer.Interface
             // GL.Enable(EnableCap.Multisample);
 
             // Disable backface culling just in case
-            GL.Enable(EnableCap.CullFace);
-            GL.CullFace(CullFaceMode.Back);
+            // GL.Enable(EnableCap.CullFace);
+            // GL.CullFace(CullFaceMode.Back);
 
             var terrainProgram = new ShaderProgram();
             terrainProgram.AddShader(ShaderType.VertexShader,   "./shaders/terrain.vert");
@@ -208,72 +208,60 @@ namespace MeshViewer.Interface
             wmoProgram.AddShader(ShaderType.GeometryShader, "./shaders/mixed.geom");
             wmoProgram.Link();
             ShaderProgramCache.Instance.Add("wmo", wmoProgram);
+
+            var gameobjectProgram = new ShaderProgram();
+            gameobjectProgram.AddShader(ShaderType.VertexShader,   "./shaders/gameobject.vert");
+            gameobjectProgram.AddShader(ShaderType.FragmentShader, "./shaders/mixed.frag");
+            gameobjectProgram.AddShader(ShaderType.GeometryShader, "./shaders/mixed.geom");
+            gameobjectProgram.Link();
+            ShaderProgramCache.Instance.Add("gameobject", gameobjectProgram);
             #endregion
         }
 
-        private void OnLoadGeometryRequest(object sender, EventArgs e) => LoadMap();
-
         private void OnOpenSettingsRequest(object sender, EventArgs e) => new SettingsForm().ShowDialog();
 
-        private void OnUpdateTick()
+        private void OnWorldUpdate()
         {
+            if (IsDisposed)
+                return;
+
             _playerExplorer.SetDataSource(Game.Players);
             _unitExplorer.SetDataSource(Game.Units);
             _gameObjectExplorer.SetDataSource(Game.GameObjects);
 
-            BeginInvoke((Action)(() =>
+            Invoke((Action)(() =>
             {
-                if (GeometryLoader == null)
-                    return;
+                if (!GeometryLoader.Initialized && Game.InGame)
+                {
+                    var directoryPickerDialog = new CommonOpenFileDialog() { IsFolderPicker = true };
+                    if (directoryPickerDialog.ShowDialog() != CommonFileDialogResult.Ok)
+                        return;
 
-                glControl1.Invalidate();
+                    DBC.AsyncInitialize(directoryPickerDialog.FileName);
+
+                    GeometryLoader.Initialize(directoryPickerDialog.FileName, Game.CurrentMap);
+                }
+
+                if (GeometryLoader.Initialized)
+                    _renderControl.Invalidate();
             }));
         }
 
-        #region Terrain Rendering
-        private void LoadMap()
-        {
-            var directoryPickerDialog = new CommonOpenFileDialog() {
-                IsFolderPicker = true
-            };
-            if (directoryPickerDialog.ShowDialog() != CommonFileDialogResult.Ok)
-                return;
-
-            if (Game.LocalPlayer == null)
-                return;
-
-            /// All the geometry is loaded Z-up:
-            ///   Z
-            ///   |
-            ///   ._ Y
-            ///  /
-            /// X
-            Task.Factory.StartNew(() =>
-            {
-                GeometryLoader = new GeometryLoader(directoryPickerDialog.FileName, Game.CurrentMap);
-                BeginInvoke((Action)(() => glControl1.Invalidate()));
-            });
-        }
-
-        private void Render()
+        private void RenderGeometry()
         {
             if (InvokeRequired)
-                BeginInvoke((Action)(() => Render()));
-            else
+                BeginInvoke((Action)(() => RenderGeometry()));
+            else if (Game.IsValid && GeometryLoader.Initialized && Game.LocalPlayer != null)
             {
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+                
+                var tileX = (int)Math.Floor(32 - Game.LocalPlayer.X / 533.3333f);
+                var tileY = (int)Math.Floor(32 - Game.LocalPlayer.Y / 533.3333f);
+                GeometryLoader.Render(tileY, tileX);
 
-                if (Game.IsValid && GeometryLoader != null && Game.LocalPlayer != null)
-                {
-                    var tileX = (int)Math.Floor(32 - Game.LocalPlayer.X / 533.3333f);
-                    var tileY = (int)Math.Floor(32 - Game.LocalPlayer.Y / 533.3333f);
-                    GeometryLoader.Render(tileY, tileX);
-                }
-
-                glControl1.SwapBuffers();
+                _renderControl.SwapBuffers();
             }
         }
-        #endregion
 
         private void OnScreenshotRequest(object sender, EventArgs e)
         {
@@ -282,9 +270,9 @@ namespace MeshViewer.Interface
                 Filter = "PNG File (*.png)|*.png|JPEG File (*.jpeg, *.jpg)|*.jpeg|BMP File (*.bmp)|*.bmp"
             };
 
-            var bmp = new Bitmap(glControl1.ClientSize.Width, glControl1.ClientSize.Height);
-            var data = bmp.LockBits(glControl1.ClientRectangle, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-            GL.ReadPixels(0, 0, glControl1.ClientSize.Width, glControl1.ClientSize.Height, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, PixelType.UnsignedByte, data.Scan0);
+            var bmp = new Bitmap(_renderControl.ClientSize.Width, _renderControl.ClientSize.Height);
+            var data = bmp.LockBits(_renderControl.ClientRectangle, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            GL.ReadPixels(0, 0, _renderControl.ClientSize.Width, _renderControl.ClientSize.Height, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, PixelType.UnsignedByte, data.Scan0);
             bmp.UnlockBits(data);
             bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
 

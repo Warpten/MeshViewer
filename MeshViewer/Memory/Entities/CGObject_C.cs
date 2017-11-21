@@ -44,19 +44,19 @@ namespace MeshViewer.Memory.Entities
         #endregion
 
         #region Descriptors
-        [Category("Object Descriptors")]
+        [Browsable(false)]
         public ObjectGuid OBJECT_FIELD_GUID    => GetUpdateField<ObjectGuid>(ObjectFields.OBJECT_FIELD_GUID);
 
-        [Category("Object Descriptors"), RefreshProperties(RefreshProperties.All)]
-        public ulong OBJECT_FIELD_DATA    => GetUpdateField<ulong>(ObjectFields.OBJECT_FIELD_DATA);
+        // [Browsable(false)]
+        // public ulong OBJECT_FIELD_DATA    => GetUpdateField<ulong>(ObjectFields.OBJECT_FIELD_DATA);
 
-        [Category("Object Descriptors"), RefreshProperties(RefreshProperties.All)]
-        public int OBJECT_FIELD_TYPE      => GetUpdateField<int>(ObjectFields.OBJECT_FIELD_TYPE);
+        // [Browsable(false)]
+        // public int OBJECT_FIELD_TYPE      => GetUpdateField<int>(ObjectFields.OBJECT_FIELD_TYPE);
 
-        [Category("Object Descriptors"), RefreshProperties(RefreshProperties.All)]
-        public int OBJECT_FIELD_ENTRY     => GetUpdateField<int>(ObjectFields.OBJECT_FIELD_ENTRY);
+        // [Browsable(false)]
+        // public int OBJECT_FIELD_ENTRY     => GetUpdateField<int>(ObjectFields.OBJECT_FIELD_ENTRY);
 
-        [Category("Object Descriptors"), RefreshProperties(RefreshProperties.All)]
+        [Browsable(false)]
         public float OBJECT_FIELD_SCALE_X => GetUpdateField<float>(ObjectFields.OBJECT_FIELD_SCALE_X);
 
         // [Browsable(false)]
@@ -91,12 +91,43 @@ namespace MeshViewer.Memory.Entities
         {
             BaseAddress = baseAddr;
 
-            Updated = true;
+            BaseAddressUpdated = true;
 
             Refresh();
+            OnUpdate();
         }
 
+        /// <summary>
+        /// Marker property for the object manager to know when a pointer became invalid.
+        /// </summary>
         [Browsable(false)]
-        public bool Updated { get; set; } = true;
+        public bool BaseAddressUpdated { get; set; } = true;
+
+        /// <summary>
+        /// Called when the entity spawns.
+        /// </summary>
+        public virtual void OnSpawn()
+        {
+        }
+
+        /// <summary>
+        /// Called just before despawning.
+        /// </summary>
+        public virtual void OnDespawn()
+        {
+        }
+
+        public virtual void OnUpdate()
+        {
+
+        }
+
+        #region Browsable properties
+        [Category("Object")]
+        public ObjectGuid GUID => OBJECT_FIELD_GUID;
+
+        [Category("Object"), RefreshProperties(RefreshProperties.All)]
+        public float Scale => OBJECT_FIELD_SCALE_X;
+        #endregion
     }
 }

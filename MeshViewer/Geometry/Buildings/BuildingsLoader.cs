@@ -7,9 +7,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace MeshViewer.Geometry.Vmap
+namespace MeshViewer.Geometry.Buildings
 {
-    public sealed class VMapLoader
+    /// <summary>
+    /// This class handles rendering of what is typically vmaps (M2/WMO objects bound to the terrain).
+    /// </summary>
+    public sealed class BuildingsLoader
     {
         public bool IsTiled { get; }
         // private BIH BIH { get; }
@@ -17,11 +20,11 @@ namespace MeshViewer.Geometry.Vmap
 
         public ModelSpawn GlobalModel { get; }
 
-        private Dictionary<int, VMapTileLoader> Grids { get; } = new Dictionary<int, VMapTileLoader>();
+        private Dictionary<int, BuildingsTileLoader> Grids { get; } = new Dictionary<int, BuildingsTileLoader>();
 
         private string Directory { get; }
 
-        public VMapLoader(string directory, int mapID)
+        public BuildingsLoader(string directory, int mapID)
         {
             Directory = directory;
 
@@ -53,7 +56,7 @@ namespace MeshViewer.Geometry.Vmap
             Grids[gridHash] = null;
             Task.Factory.StartNew(() =>
             {
-                var gridLoader = new VMapTileLoader(Directory, MapID, tileX, tileY);
+                var gridLoader = new BuildingsTileLoader(Directory, MapID, tileX, tileY);
                 if (gridLoader.FileExists)
                     lock (Grids) Grids[gridHash] = gridLoader;
             });
@@ -97,8 +100,8 @@ namespace MeshViewer.Geometry.Vmap
                     }
                 }
             }
-            //else
-                //GlobalModel.Render();
+            else if (GlobalModel != null)
+                GlobalModel.Render();
         }
     }
 }

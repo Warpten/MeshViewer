@@ -66,10 +66,16 @@ namespace MeshViewer.Geometry.Model
             }
         }
 
-        public void AddInstance(Matrix4 spawn)
+        public void AddInstance(ref Matrix4 spawn)
         {
             lock (_instancePositions)
                 _instancePositions.Add(spawn);
+        }
+
+        public void RemoveInstance(ref Matrix4 spawn)
+        {
+            lock (_instancePositions)
+                _instancePositions.Remove(spawn);
         }
 
         protected override bool BindData(ref Vector3[] vertices, ref uint[] indices, ref Matrix4[] instancePositions)

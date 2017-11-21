@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace MeshViewer.Geometry.Map
+namespace MeshViewer.Geometry.Terrain
 {
-    public sealed class GridMapLoader : IndexedModel<float, int>
+    public sealed class TerrainGridLoader : IndexedModel<float, int>
     {
         public int X { get; }
         public int Y { get; }
@@ -30,7 +30,7 @@ namespace MeshViewer.Geometry.Map
         public MapFileHeader FileHeader { get; }
         #endregion
 
-        public GridMapLoader(string filePath, int mapID, int x, int y)
+        public TerrainGridLoader(string filePath, int mapID, int x, int y)
         {
             MapID = mapID;
             X = x;
@@ -58,7 +58,7 @@ namespace MeshViewer.Geometry.Map
             }
         }
 
-        ~GridMapLoader()
+        ~TerrainGridLoader()
         {
             LiquidEntry = null;
             LiquidFlags = null;
@@ -267,14 +267,14 @@ namespace MeshViewer.Geometry.Map
                 if ((header.Flags & 0x0002) != 0) // MAP_HEIGHT_AS_INT16
                 {
                     var gridHeightMultiplier = (header.GridMaxHeight - header.GridHeight) / 65535;
-                    V9 = reader.Read<ushort>(129 * 129).Select(v => (float)v * gridHeightMultiplier + header.GridHeight).ToArray();
-                    V8 = reader.Read<ushort>(128 * 128).Select(v => (float)v * gridHeightMultiplier + header.GridHeight).ToArray();
+                    V9 = reader.Read<ushort>(129 * 129).Select(v => v * gridHeightMultiplier + header.GridHeight).ToArray();
+                    V8 = reader.Read<ushort>(128 * 128).Select(v => v * gridHeightMultiplier + header.GridHeight).ToArray();
                 }
                 else if ((header.Flags & 0x0004) != 0) // MAP_HEIGHT_AS_INT8
                 {
                     var gridHeightMultiplier = (header.GridMaxHeight - header.GridHeight) / 255;
-                    V9 = reader.ReadBytes(129 * 129).Select(v => (float)v * gridHeightMultiplier + header.GridHeight).ToArray();
-                    V9 = reader.ReadBytes(128 * 128).Select(v => (float)v * gridHeightMultiplier + header.GridHeight).ToArray();
+                    V9 = reader.ReadBytes(129 * 129).Select(v => v * gridHeightMultiplier + header.GridHeight).ToArray();
+                    V9 = reader.ReadBytes(128 * 128).Select(v => v * gridHeightMultiplier + header.GridHeight).ToArray();
                 }
                 else
                 {

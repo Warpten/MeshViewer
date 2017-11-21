@@ -18,43 +18,61 @@ namespace MeshViewer.Memory
         public static bool IsValid => Instance != null;
 
         #region Events
-        public static event Action OnUpdateTick
+        public static event Action OnWorldUpdate
         {
             add {
-                if (Manager != null)
-                    Manager.OnUpdateTick += value;
+                if (Manager == null)
+                    throw new InvalidOperationException("Binding to OnWorldUpdate before the manager initialized!");
+
+                Manager.OnWorldUpdate += value;
             }
             remove {
                 if (Manager != null)
-                    Manager.OnUpdateTick -= value;
+                    Manager.OnWorldUpdate -= value;
             }
         }
 
-        public static event Action<CGObject_C> OnDespawn
+        public static event Action<CGObject_C> OnEntityDespawn
+        {
+            add {
+                if (Manager == null)
+                    throw new InvalidOperationException("Binding to OnEntityDespawn before the manager initialized!");
+
+                Manager.OnEntityDespawn += value;
+            }
+            remove {
+                if (Manager != null)
+                    Manager.OnEntityDespawn -= value;
+            }
+        }
+
+        public static event Action<CGObject_C> OnSpawn
+        {
+            add {
+                if (Manager == null)
+                    throw new InvalidOperationException("Binding to OnSpawn before the manager initialized!");
+
+                Manager.OnEntitySpawn += value;
+            }
+            remove {
+                if (Manager != null)
+                    Manager.OnEntitySpawn -= value;
+            }
+        }
+
+        public static event Action<CGObject_C> OnEntityUpdated
         {
             add
             {
-                if (Manager != null)
-                    Manager.OnDespawn += value;
+                if (Manager == null)
+                    throw new InvalidOperationException("Binding to OnEntityUpdated before the manager initialized!");
+
+                Manager.OnEntityUpdated += value;
             }
             remove
             {
                 if (Manager != null)
-                    Manager.OnDespawn -= value;
-            }
-        }
-
-        public static event Action<CGObject_C> OnUpdate
-        {
-            add
-            {
-                if (Manager != null)
-                    Manager.OnUpdate += value;
-            }
-            remove
-            {
-                if (Manager != null)
-                    Manager.OnUpdate -= value;
+                    Manager.OnEntityUpdated -= value;
             }
         }
         #endregion
@@ -62,7 +80,6 @@ namespace MeshViewer.Memory
         #region ObjectMgr shorthands
         public static int CurrentMap => Manager?.CurrentMap ?? -1;
         public static bool InGame => Manager?.InGame ?? false;
-
 
         public static CGPlayer_C LocalPlayer      => Manager?.LocalPlayer ?? null;
 

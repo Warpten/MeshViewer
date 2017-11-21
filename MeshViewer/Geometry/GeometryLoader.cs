@@ -1,46 +1,36 @@
-﻿using MeshViewer.Geometry.Map;
-using MeshViewer.Geometry.Vmap;
-using MeshViewer.Memory;
+﻿using MeshViewer.Geometry.Buildings;
+using MeshViewer.Geometry.GameObjects;
+using MeshViewer.Geometry.Terrain;
 
 namespace MeshViewer.Geometry
 {
-    public sealed class GeometryLoader
+    public static class GeometryLoader
     {
-        private VMapLoader VMAP { get; set; }
-        private MapLoader MAP { get; set; }
+        public static BuildingsLoader Buildings { get; private set; }
+        public static TerrainLoader Terrain { get; private set; }
+        public static GameObjectLoader GameObjects { get; private set; }
 
-        public string Directory { get; set; }
-        public int MapID
+        public static bool Initialized => Buildings != null;
+
+        public static void Initialize(string directory, int mapID)
         {
-            get { return Game.CurrentMap; }
-            set
-            {
-                MAP = null;
-                MAP = new MapLoader(Directory, value);
-
-                VMAP = null;
-                VMAP = new VMapLoader(Directory, value);
-            }
+            Buildings = new BuildingsLoader(directory, mapID);
+            Terrain = new TerrainLoader(directory, mapID);
+            GameObjects = new GameObjectLoader(directory);
         }
 
-        public GeometryLoader(string directory, int mapID)
+        public static void LoadTile(int tileX, int tileY)
         {
-            Directory = directory;
-
-            VMAP = new VMapLoader(Directory, mapID);
-            MAP = new MapLoader(Directory, mapID);
+            Terrain.LoadTile(tileX, tileY);
+            Buildings.LoadTile(tileX, tileY);
         }
 
-        public void LoadTile(int tileX, int tileY)
+        public static void Render(int centerTileX, int centerTileY)
         {
-            MAP.LoadTile(tileX, tileY);
-            VMAP.LoadTile(tileX, tileY);
-        }
+            Terrain.Render(centerTileX, centerTileY);
+            Buildings.Render(centerTileX, centerTileY);
 
-        public void Render(int centerTileX, int centerTileY)
-        {
-            MAP.Render(centerTileX, centerTileY);
-            VMAP.Render(centerTileX, centerTileY);
+            GameObjects.Render();
         }
     }
 }

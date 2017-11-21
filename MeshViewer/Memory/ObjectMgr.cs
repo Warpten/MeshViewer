@@ -19,10 +19,28 @@ namespace MeshViewer.Memory
 
         private Dictionary<ulong, CGObject_C> _entities = new Dictionary<ulong, CGObject_C>();
 
-        public event Action<CGObject_C> OnUpdate;
-        public event Action<CGObject_C> OnDespawn;
-        public event Action<CGObject_C> OnSpawn;
-        public event Action OnUpdateTick;
+        /// <summary>
+        /// Called when an entity's base address pointer is refreshed.
+        /// </summary>
+        public event Action<CGObject_C> OnEntityUpdated;
+
+        /// <summary>
+        /// Called when a given entity despawns. Not that at that point,
+        /// any updatefield is garbage since it hasn't been cached.
+        /// Caching updatefields would be too much of a performance hit.
+        /// </summary>
+        public event Action<CGObject_C> OnEntityDespawn;
+
+        /// <summary>
+        /// Called when a given entity spawns (or enters visiblity range)
+        /// </summary>
+        public event Action<CGObject_C> OnEntitySpawn;
+
+        /// <summary>
+        /// This event triggers every time the object manager gets polled
+        /// for new/removed entities.
+        /// </summary>
+        public event Action OnWorldUpdate;
 
         public static int UpdateFrequency { get; set; } = 100;
 
@@ -117,7 +135,7 @@ namespace MeshViewer.Memory
             _localGUID = Game.Read<ulong>(_currentManager + LocalGUID, true);
 
             foreach (var oldEntitiy in _entities)
-                oldEntitiy.Value.Updated = false;
+                oldEntitiy.Value.BaseAddressUpdated = false;
 
             foreach (var newEntityPtr in Enumerate())
             {
@@ -127,8 +145,7 @@ namespace MeshViewer.Memory
                 if (_entities.ContainsKey(objectGuid))
                 {
                     _entities[objectGuid].UpdateBaseAddress(newEntityPtr);
-
-                    OnUpdate?.Invoke(_entities[objectGuid]);
+                    OnEntityUpdated?.Invoke(_entities[objectGuid]);
                 }
                 else
                 {
@@ -155,18 +172,20 @@ namespace MeshViewer.Memory
                             break;
                     }
 
-                    OnSpawn?.Invoke(_entities[objectGuid]);
+                    OnEntitySpawn?.Invoke(_entities[objectGuid]);
+                    _entities[objectGuid].OnSpawn();
                 }
             }
 
-            foreach (var removalKey in _entities.Where(kv => !kv.Value.Updated).Select(kv => kv.Key).ToList())
+            foreach (var removalKey in _entities.Where(kv => !kv.Value.BaseAddressUpdated).Select(kv => kv.Key).ToList())
             {
-                OnDespawn?.Invoke(_entities[removalKey]);
+                OnEntityDespawn?.Invoke(_entities[removalKey]);
+                _entities[removalKey].OnDespawn();
 
                 _entities.Remove(removalKey);
             }
 
-            OnUpdateTick?.Invoke();
+            OnWorldUpdate?.Invoke();
         }
 
         public bool InGame => Game.Read<byte>(Cataclysm.OnLoginScreen) == 0;

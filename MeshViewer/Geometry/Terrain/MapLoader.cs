@@ -6,16 +6,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace MeshViewer.Geometry.Map
+namespace MeshViewer.Geometry.Terrain
 {
-    public sealed class MapLoader
+    public sealed class TerrainLoader
     {
         public int MapID { get; }
 
-        public Dictionary<int, GridMapLoader> Grids { get; set; } = new Dictionary<int, GridMapLoader>();
+        public Dictionary<int, TerrainGridLoader> Grids { get; set; } = new Dictionary<int, TerrainGridLoader>();
         public string Directory { get; }
 
-        public MapLoader(string directory, int mapID)
+        public TerrainLoader(string directory, int mapID)
         {
             MapID = mapID;
 
@@ -30,9 +30,9 @@ namespace MeshViewer.Geometry.Map
             
             // Placeholder until the task executes
             Grids[gridHash] = null;
-            Task.Factory.StartNew(() =>
+            Task.Run(() =>
             {
-                var gridLoader = new GridMapLoader(Directory, MapID, tileX, tileY)
+                var gridLoader = new TerrainGridLoader(Directory, MapID, tileX, tileY)
                 {
                     Program = ShaderProgramCache.Instance.Get("terrain")
                 };
@@ -75,7 +75,7 @@ namespace MeshViewer.Geometry.Map
             }
         }
 
-        ~MapLoader()
+        ~TerrainLoader()
         {
             Grids.Clear();
             Grids = null;
