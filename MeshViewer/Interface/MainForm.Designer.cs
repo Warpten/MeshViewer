@@ -37,6 +37,7 @@
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripCheckBox1 = new MeshViewer.Interface.Controls.ToolStripCheckBox();
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this._gameObjectExplorer = new MeshViewer.Interface.Controls.EntityControl();
             this.tabPage3 = new System.Windows.Forms.TabPage();
@@ -110,24 +111,34 @@
             // statusStrip1
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripStatusLabel1});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 558);
+            this.toolStripStatusLabel1,
+            this.toolStripCheckBox1});
+            this.statusStrip1.Location = new System.Drawing.Point(0, 551);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(840, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(840, 29);
             this.statusStrip1.TabIndex = 2;
             this.statusStrip1.Text = "statusStrip1";
             // 
             // toolStripStatusLabel1
             // 
             this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            this.toolStripStatusLabel1.Size = new System.Drawing.Size(0, 17);
+            this.toolStripStatusLabel1.Size = new System.Drawing.Size(0, 24);
+            // 
+            // toolStripCheckBox1
+            // 
+            this.toolStripCheckBox1.Checked = false;
+            this.toolStripCheckBox1.Name = "toolStripCheckBox1";
+            this.toolStripCheckBox1.Padding = new System.Windows.Forms.Padding(10, 4, 0, 4);
+            this.toolStripCheckBox1.Size = new System.Drawing.Size(147, 27);
+            this.toolStripCheckBox1.Text = "Render GameObjects";
+            this.toolStripCheckBox1.OwnerChanged += new System.EventHandler(this.GameObjectDisplayToggled);
             // 
             // tabPage4
             // 
             this.tabPage4.Controls.Add(this._gameObjectExplorer);
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
-            this.tabPage4.Size = new System.Drawing.Size(807, 498);
+            this.tabPage4.Size = new System.Drawing.Size(807, 491);
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "GameObjects";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -140,7 +151,7 @@
             this._gameObjectExplorer.FilterEnabled = true;
             this._gameObjectExplorer.Location = new System.Drawing.Point(3, 3);
             this._gameObjectExplorer.Name = "_gameObjectExplorer";
-            this._gameObjectExplorer.Size = new System.Drawing.Size(801, 492);
+            this._gameObjectExplorer.Size = new System.Drawing.Size(801, 485);
             this._gameObjectExplorer.TabIndex = 0;
             // 
             // tabPage3
@@ -149,7 +160,7 @@
             this.tabPage3.ImageIndex = 2;
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(807, 498);
+            this.tabPage3.Size = new System.Drawing.Size(807, 491);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Units";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -162,7 +173,7 @@
             this._unitExplorer.FilterEnabled = false;
             this._unitExplorer.Location = new System.Drawing.Point(3, 3);
             this._unitExplorer.Name = "_unitExplorer";
-            this._unitExplorer.Size = new System.Drawing.Size(801, 492);
+            this._unitExplorer.Size = new System.Drawing.Size(801, 485);
             this._unitExplorer.TabIndex = 0;
             // 
             // tabPage2
@@ -172,7 +183,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(807, 498);
+            this.tabPage2.Size = new System.Drawing.Size(807, 491);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Players";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -185,7 +196,7 @@
             this._playerExplorer.FilterEnabled = true;
             this._playerExplorer.Location = new System.Drawing.Point(3, 3);
             this._playerExplorer.Name = "_playerExplorer";
-            this._playerExplorer.Size = new System.Drawing.Size(801, 492);
+            this._playerExplorer.Size = new System.Drawing.Size(801, 485);
             this._playerExplorer.TabIndex = 0;
             // 
             // tabPage1
@@ -195,7 +206,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(807, 498);
+            this.tabPage1.Size = new System.Drawing.Size(807, 491);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Terrain";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -207,7 +218,7 @@
             this._renderControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this._renderControl.Location = new System.Drawing.Point(3, 3);
             this._renderControl.Name = "_renderControl";
-            this._renderControl.Size = new System.Drawing.Size(801, 492);
+            this._renderControl.Size = new System.Drawing.Size(801, 485);
             this._renderControl.TabIndex = 0;
             this._renderControl.VSync = true;
             // 
@@ -223,7 +234,7 @@
             this.tabControl1.Location = new System.Drawing.Point(13, 31);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(815, 524);
+            this.tabControl1.Size = new System.Drawing.Size(815, 517);
             this.tabControl1.TabIndex = 1;
             // 
             // MainForm
@@ -273,5 +284,6 @@
         private System.Windows.Forms.TabPage tabPage1;
         private OpenTK.GLControl _renderControl;
         private System.Windows.Forms.TabControl tabControl1;
+        private Controls.ToolStripCheckBox toolStripCheckBox1;
     }
 }

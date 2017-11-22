@@ -1,5 +1,6 @@
 ﻿using MeshViewer.Data;
 using MeshViewer.Geometry;
+using MeshViewer.Interface.Controls;
 using MeshViewer.Interface.Controls.ListViews.Renderers;
 using MeshViewer.Memory;
 using MeshViewer.Memory.Entities;
@@ -176,6 +177,8 @@ namespace MeshViewer.Interface
 #endif
             _renderControl.Paint += (_, __) => RenderGeometry();
             _renderControl.Resize += (_, __) => {
+                GeometryLoader.Buffer.Width = _renderControl.Width;
+                GeometryLoader.Buffer.Height = _renderControl.Height;
                 GL.Viewport(0, 0, _renderControl.Width, _renderControl.Height);
 
                 if (Game.Camera != null)
@@ -188,12 +191,11 @@ namespace MeshViewer.Interface
             GL.DepthFunc(DepthFunction.Less);
 
             GL.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
-            
-            // GL.Enable(EnableCap.Multisample);
+            GL.Enable(EnableCap.Multisample);
 
             // Disable backface culling just in case
-            // GL.Enable(EnableCap.CullFace);
-            // GL.CullFace(CullFaceMode.Back);
+            //  GL.Enable(EnableCap.CullFace);
+            //  GL.CullFace(CullFaceMode.Back);
 
             var terrainProgram = new ShaderProgram();
             terrainProgram.AddShader(ShaderType.VertexShader,   "./shaders/terrain.vert");
@@ -215,6 +217,12 @@ namespace MeshViewer.Interface
             gameobjectProgram.AddShader(ShaderType.GeometryShader, "./shaders/mixed.geom");
             gameobjectProgram.Link();
             ShaderProgramCache.Instance.Add("gameobject", gameobjectProgram);
+
+            var quadProgram = new ShaderProgram();
+            quadProgram.AddShader(ShaderType.VertexShader,   "./shaders/quad.vert");
+            quadProgram.AddShader(ShaderType.FragmentShader, "./shaders/quad.frag");
+            quadProgram.Link();
+            ShaderProgramCache.Instance.Add("quad", quadProgram);
             #endregion
         }
 
@@ -253,8 +261,6 @@ namespace MeshViewer.Interface
                 BeginInvoke((Action)(() => RenderGeometry()));
             else if (Game.IsValid && GeometryLoader.Initialized && Game.LocalPlayer != null)
             {
-                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-                
                 var tileX = (int)Math.Floor(32 - Game.LocalPlayer.X / 533.3333f);
                 var tileY = (int)Math.Floor(32 - Game.LocalPlayer.Y / 533.3333f);
                 GeometryLoader.Render(tileY, tileX);
@@ -302,6 +308,11 @@ namespace MeshViewer.Interface
             public int ID { get; set; }
 
             public override string ToString() => $"{Name} [PID: {ID}]";
+        }
+
+        private void GameObjectDisplayToggled(object sender, EventArgs e)
+        {
+            GeometryLoader.GameObjects.Enabled = (sender as ToolStripCheckBox).Checked;
         }
     }
 }

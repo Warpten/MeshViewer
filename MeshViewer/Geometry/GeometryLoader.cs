@@ -1,6 +1,9 @@
 ﻿using MeshViewer.Geometry.Buildings;
 using MeshViewer.Geometry.GameObjects;
 using MeshViewer.Geometry.Terrain;
+using MeshViewer.Rendering;
+using OpenTK.Graphics.OpenGL;
+using System.Drawing;
 
 namespace MeshViewer.Geometry
 {
@@ -9,6 +12,8 @@ namespace MeshViewer.Geometry
         public static BuildingsLoader Buildings { get; private set; }
         public static TerrainLoader Terrain { get; private set; }
         public static GameObjectLoader GameObjects { get; private set; }
+
+        public static FrameBuffer Buffer { get; private set; } = new FrameBuffer();
 
         public static bool Initialized => Buildings != null;
 
@@ -27,10 +32,18 @@ namespace MeshViewer.Geometry
 
         public static void Render(int centerTileX, int centerTileY)
         {
+            Buffer.Bind();
+
+            GL.ClearColor(Color.Black);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            GL.Enable(EnableCap.DepthTest);
+
             Terrain.Render(centerTileX, centerTileY);
             Buildings.Render(centerTileX, centerTileY);
 
             GameObjects.Render();
+
+            Buffer.RenderTexture();
         }
     }
 }

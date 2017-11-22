@@ -138,6 +138,9 @@
     <Compile Include="Interface\Controls\ListViews.Renderers\ObjectListRenderer.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Interface\Controls\ToolStripControlHost.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Interface\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -225,10 +228,18 @@
     <None Include="shaders\mixed.frag">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="shaders\quad.frag">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="shaders\quad.vert">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="shaders\terrain.vert">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="shaders\unit.geom" />
+    <None Include="shaders\unit.geom">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="shaders\wmo.vert">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

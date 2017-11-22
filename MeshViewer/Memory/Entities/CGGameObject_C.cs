@@ -3,6 +3,7 @@ using MeshViewer.Data.Structures;
 using MeshViewer.Geometry;
 using MeshViewer.Memory.Enums;
 using MeshViewer.Memory.Enums.UpdateFields;
+using OpenTK;
 using System;
 using System.ComponentModel;
 
@@ -107,9 +108,10 @@ namespace MeshViewer.Memory.Entities
         public byte AnimProgress => (byte)((GAMEOBJECT_BYTES_1 >> 24) & 0xFF);
         
         [Category("GameObject")]
-        public GameObjectDisplayInfoEntry DisplayInfo => GAMEOBJECT_DISPLAYID != 0 ? DBC.GameObjectDisplayInfo[GAMEOBJECT_DISPLAYID] : null;
+        public GameObjectDisplayInfoEntry DisplayInfo => GAMEOBJECT_DISPLAYID != 0 && DBC.GameObjectDisplayInfo != null ? DBC.GameObjectDisplayInfo[GAMEOBJECT_DISPLAYID] : null;
         #endregion
 
+        public Matrix4 PositionMatrix => Read<Matrix4>(BaseAddress + 0x1D0);
         private bool _spawned = false;
     }
 }

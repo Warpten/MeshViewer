@@ -42,7 +42,7 @@ namespace MeshViewer.Memory
         /// </summary>
         public event Action OnWorldUpdate;
 
-        public static int UpdateFrequency { get; set; } = 100;
+        public static int UpdateFrequency { get; set; } = 15;
 
         public ObjectMgr()
         {

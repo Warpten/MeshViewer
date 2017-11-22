@@ -100,6 +100,11 @@ namespace MeshViewer.Rendering
             GL.Uniform2(Uniforms[uniformName], ref vector);
         }
 
+        public void UniformInteger(string uniformName, int value)
+        {
+            GL.Uniform1(Uniforms[uniformName], value);
+        }
+
         public void Use() => GL.UseProgram(Program);
 
         public void EnableVertexAttribArray<T>(string attributeName) where T : struct
