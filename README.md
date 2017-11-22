@@ -15,3 +15,4 @@ Bugs
 
 * GameObjects don't animate their movements (transports)
 * Lots of exceptions at shutdown.
+* ADT holes appear to not work.
