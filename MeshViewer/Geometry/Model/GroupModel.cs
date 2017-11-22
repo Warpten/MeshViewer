@@ -2,31 +2,21 @@
 using System.IO;
 using MeshViewer.Rendering;
 using MeshViewer.Memory;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace MeshViewer.Geometry.Model
 {
     public sealed class GroupModel : InstancedIndexedModel<Vector3, uint>
     {
-        // public BIH Tree { get; }
-        public Vector3[] Vertices { get; private set; }
-        public uint[] Indices { get; private set; }
+        public Vector3[] _modelVertices { get; private set; }
+        public uint[] _modelIndices { get; private set; }
 
-        private List<Matrix4> _instancePositions = new List<Matrix4>();
-        public List<Matrix4> Positions
-        {
-            get
-            {
-                lock (_instancePositions)
-                    return _instancePositions;
-            }
-        }
+        private Dictionary<ulong, Matrix4> _instances = new Dictionary<ulong, Matrix4>();
 
         public GroupModel(BinaryReader reader)
         {
-            var bbox = reader.Read<float>(6);
-            // var boundingBoxLo = reader.Read<Vector3>();
-            // var boundingBoxHi = reader.Read<Vector3>();
+            reader.BaseStream.Position += 2 * SizeCache<Vector3>.Size; // BBox
             var mogpFlags = reader.ReadInt32();
             var groupWmoID = reader.ReadInt32();
 
@@ -37,7 +27,7 @@ namespace MeshViewer.Geometry.Model
                 if (count == 0)
                     return;
 
-                Vertices = reader.Read<Vector3>(count);
+                _modelVertices = reader.Read<Vector3>(count);
             }
 
             if (reader.ReadInt32() == 0x4D495254) // TRIM
@@ -45,7 +35,7 @@ namespace MeshViewer.Geometry.Model
                 var chunkSize = reader.ReadInt32();
                 var count = reader.ReadInt32();
 
-                Indices = reader.Read<uint>(count * 3);
+                _modelIndices = reader.Read<uint>(count * 3);
             }
 
             if (reader.ReadInt32() == 0x4849424D) // MBIH
@@ -66,42 +56,39 @@ namespace MeshViewer.Geometry.Model
             }
         }
 
-        public void AddInstance(ref Matrix4 spawn)
+        public void AddInstance(ref Matrix4 spawn, ulong instanceGUID)
         {
-            lock (_instancePositions)
-                _instancePositions.Add(spawn);
+            /*if (!*/_instances.TryAdd(instanceGUID, spawn)/*)
+                throw new InvalidOperationException()*/;
         }
 
-        public void RemoveInstance(ref Matrix4 spawn)
+        public void RemoveInstance(ulong instanceGUID)
         {
-            lock (_instancePositions)
-                _instancePositions.Remove(spawn);
+            _instances.Remove(instanceGUID);
         }
 
         protected override bool BindData(ref Vector3[] vertices, ref uint[] indices, ref Matrix4[] instancePositions)
         {
-            vertices = Vertices;
-            indices = Indices;
-            lock (_instancePositions)
-                instancePositions = _instancePositions.ToArray();
+            vertices = _modelVertices;
+            indices = _modelIndices;
+            instancePositions = _instances.Values.ToArray();
 
-            Vertices = null;
-            Indices = null;
-            // _instancePositions = null;
+            _modelVertices = null;
+            _modelIndices = null;
 
             return true;
         }
         
         public void InvertIndices()
         {
-            if (Indices == null)
+            if (_modelIndices == null)
                 return;
 
-            for (var i = 0; i < Indices.Length; i += 3)
+            for (var i = 0; i < _modelIndices.Length; i += 3)
             {
-                var tmp = Indices[i];
-                Indices[i] = Indices[i + 2];
-                Indices[i + 2] = tmp;
+                var tmp = _modelIndices[i];
+                _modelIndices[i] = _modelIndices[i + 2];
+                _modelIndices[i + 2] = tmp;
             }
         }
     }

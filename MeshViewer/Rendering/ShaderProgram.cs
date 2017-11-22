@@ -85,17 +85,17 @@ namespace MeshViewer.Rendering
                 GL.VertexAttribPointer(attribute, size, type, normalized, SizeCache<T>.Size, offset);
         }
 
-        public void UniformMatrix4(string uniformName, bool transpose, ref Matrix4 matrix)
+        public void UniformMatrix(string uniformName, bool transpose, ref Matrix4 matrix)
         {
             GL.UniformMatrix4(Uniforms[uniformName], false, ref matrix);
         }
 
-        public void UniformVector3(string uniformName, ref Vector3 vector)
+        public void UniformVector(string uniformName, ref Vector3 vector)
         {
             GL.Uniform3(Uniforms[uniformName], ref vector);
         }
 
-        public void UniformVector2(string uniformName, ref Vector2 vector)
+        public void UniformVector(string uniformName, ref Vector2 vector)
         {
             GL.Uniform2(Uniforms[uniformName], ref vector);
         }

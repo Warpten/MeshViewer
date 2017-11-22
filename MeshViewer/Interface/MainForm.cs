@@ -1,6 +1,5 @@
 ﻿using MeshViewer.Data;
 using MeshViewer.Geometry;
-using MeshViewer.Interface.Controls;
 using MeshViewer.Interface.Controls.ListViews.Renderers;
 using MeshViewer.Memory;
 using MeshViewer.Memory.Entities;
@@ -51,7 +50,6 @@ namespace MeshViewer.Interface
             Game.Open(selectedProcess.ID);
 
             Game.OnWorldUpdate += OnWorldUpdate;
-
             Game.OnEntityDespawn += _playerExplorer.OnDespawn;
             Game.OnEntityUpdated += _playerExplorer.OnUpdate;
 
@@ -60,7 +58,7 @@ namespace MeshViewer.Interface
                 {
                     Game.Update();
 
-                    BeginInvoke((Action)(() => {
+                    Invoke((Action)(() => {
                         if (!Game.InGame)
                             return;
 
@@ -70,7 +68,7 @@ namespace MeshViewer.Interface
                             toolStripStatusLabel1.Text = $"Logged in as {localPlayer.Name} (Map #{Game.CurrentMap})";
                     }));
 
-                    _clientUpdaterToken.Token.WaitHandle.WaitOne(ObjectMgr.UpdateFrequency);
+                    // _clientUpdaterToken.Token.WaitHandle.WaitOne(ObjectMgr.UpdateFrequency);
                 }
             }, _clientUpdaterToken.Token);
         }
@@ -140,41 +138,6 @@ namespace MeshViewer.Interface
             #endregion
 
             #region Rendering
-#if DEBUG
-            // _renderControl.Context.ErrorChecking = true;
-            // 
-            // GL.Enable(EnableCap.DebugOutput);
-            // GL.Enable(EnableCap.DebugOutputSynchronous);
-            // GL.DebugMessageCallback((DebugSource source, DebugType type, int id, DebugSeverity severity, int length, IntPtr messagePtr, IntPtr errorParam) =>
-            // {
-            //     if (id == 131169 || id == 131185 || id == 131218 || id == 131204)
-            //         return;
-            // 
-            //     var oldForegroundColor = Console.ForegroundColor;
-            // 
-            //     var message = new string((sbyte*)messagePtr, 0, length, System.Text.Encoding.ASCII);
-            // 
-            //     switch (severity)
-            //     {
-            //         case DebugSeverity.DebugSeverityNotification:
-            //             Console.ForegroundColor = ConsoleColor.DarkYellow;
-            //             break;
-            //         case DebugSeverity.DebugSeverityHigh:
-            //             Console.ForegroundColor = ConsoleColor.Red;
-            //             break;
-            //         case DebugSeverity.DebugSeverityMedium:
-            //             Console.ForegroundColor = ConsoleColor.Blue;
-            //             break;
-            //         case DebugSeverity.DebugSeverityLow:
-            //             Console.ForegroundColor = ConsoleColor.Green;
-            //             break;
-            //     }
-            // 
-            //     Console.WriteLine(message);
-            //     Console.ForegroundColor = oldForegroundColor;
-            // }, IntPtr.Zero);
-
-#endif
             _renderControl.Paint += (_, __) => RenderGeometry();
             _renderControl.Resize += (_, __) => {
                 GeometryLoader.Buffer.Width = _renderControl.Width;
@@ -193,9 +156,9 @@ namespace MeshViewer.Interface
             GL.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
             GL.Enable(EnableCap.Multisample);
 
-            // Disable backface culling just in case
-            //  GL.Enable(EnableCap.CullFace);
-            //  GL.CullFace(CullFaceMode.Back);
+            // Disable backface culling. some faces have their vertices in the wrong order.
+            // GL.Enable(EnableCap.CullFace);
+            // GL.CullFace(CullFaceMode.Back);
 
             var terrainProgram = new ShaderProgram();
             terrainProgram.AddShader(ShaderType.VertexShader,   "./shaders/terrain.vert");
@@ -230,9 +193,6 @@ namespace MeshViewer.Interface
 
         private void OnWorldUpdate()
         {
-            if (IsDisposed)
-                return;
-
             _playerExplorer.SetDataSource(Game.Players);
             _unitExplorer.SetDataSource(Game.Units);
             _gameObjectExplorer.SetDataSource(Game.GameObjects);
@@ -250,15 +210,14 @@ namespace MeshViewer.Interface
                     GeometryLoader.Initialize(directoryPickerDialog.FileName, Game.CurrentMap);
                 }
 
-                if (GeometryLoader.Initialized)
-                    _renderControl.Invalidate();
+                _renderControl.Invalidate();
             }));
         }
 
         private void RenderGeometry()
         {
             if (InvokeRequired)
-                BeginInvoke((Action)(() => RenderGeometry()));
+                Invoke((Action)(() => RenderGeometry()));
             else if (Game.IsValid && GeometryLoader.Initialized && Game.LocalPlayer != null)
             {
                 var tileX = (int)Math.Floor(32 - Game.LocalPlayer.X / 533.3333f);
@@ -312,7 +271,7 @@ namespace MeshViewer.Interface
 
         private void GameObjectDisplayToggled(object sender, EventArgs e)
         {
-            GeometryLoader.GameObjects.Enabled = (sender as ToolStripCheckBox).Checked;
+            GeometryLoader.GameObjects.Enabled = (sender as CheckBox).Checked;
         }
     }
 }

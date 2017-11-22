@@ -1,4 +1,5 @@
 ﻿using MeshViewer.Geometry.Model;
+using OpenTK;
 using System.Collections.Generic;
 using System.IO;
 
@@ -6,57 +7,85 @@ namespace MeshViewer.Geometry.Buildings
 {
     public sealed class BuildingsTileLoader
     {
-        private Dictionary<string, ModelSpawn> Spawns { get; set; } = new Dictionary<string, ModelSpawn>();
-        public int MapID { get; }
-        public int X { get; }
-        public int Y { get; }
-        public bool FileExists { get; }
+        public int X { get; private set; }
+        public int Y { get; private set; }
 
-        public BuildingsTileLoader(string directory, int mapID, int tileX, int tileY)
+        private string _directory;
+
+        private Dictionary<string, Dictionary<ulong, Matrix4>> _instanceGUIDs = new Dictionary<string, Dictionary<ulong, Matrix4>>();
+        private bool _instancesRendered = false;
+
+        public IEnumerable<string> Models => _instanceGUIDs.Keys;
+
+        public void RemoveInstances()
         {
+            if (!_instancesRendered)
+                return;
+
+            _instancesRendered = false;
+            
+            foreach (var kv in _instanceGUIDs)
+            {
+                var worldModel = WorldModelCache.OpenInstance(_directory, kv.Key);
+                if (worldModel == null)
+                    continue;
+
+                foreach (var kv2 in kv.Value)
+                    worldModel.RemoveInstance(kv2.Key);
+            }
+        }
+
+        public void AddInstances()
+        {
+            if (_instancesRendered)
+                return;
+
+            _instancesRendered = true;
+
+            foreach (var kv in _instanceGUIDs)
+            {
+                var worldModel = WorldModelCache.OpenInstance(_directory, kv.Key);
+                if (worldModel == null)
+                    continue;
+
+                foreach (var kv2 in kv.Value)
+                {
+                    var instanceMatrix = kv2.Value;
+                    worldModel.AddInstance(ref instanceMatrix, kv2.Key);
+                }
+            }
+        }
+
+        public void LoadInstances(string directory, int mapID, int tileX, int tileY)
+        {
+            _directory = directory;
+
             X = tileX;
             Y = tileY;
 
-            var refCounter = new Dictionary<int, int>();
-
             var filePath = Path.Combine(directory, "vmaps", $"{mapID:D3}_{tileX:D2}_{tileY:D2}.vmtile");
-            if (!(FileExists = File.Exists(filePath)))
-                return;
 
             using (var reader = new BinaryReader(File.OpenRead(filePath)))
             {
                 reader.BaseStream.Position += 8; // Skip magic
 
-                var numSpawns = reader.ReadInt32();
-                for (var i = 0; i < numSpawns; ++i)
+                var numModelBatches = reader.ReadInt32();
+                
+                for (var i = 0; i < numModelBatches; ++i)
                 {
                     var modelSpawn = new ModelSpawn(directory, reader);
-                    var referencedValue = reader.ReadInt32();
+                    reader.BaseStream.Position += 4;
 
-                    if (!Spawns.ContainsKey(modelSpawn.Name))
-                        Spawns.Add(modelSpawn.Name, modelSpawn);
-                    // No else statement, ctor adds the instance already
+                    var modelName     = modelSpawn.ModelName;
+                    var modelPosition = modelSpawn.PositionMatrix;
+
+                    var worldModel = WorldModelCache.OpenInstance(directory, modelName);
+                    if (!_instanceGUIDs.TryGetValue(modelName, out var storageDictionary))
+                        storageDictionary = _instanceGUIDs[modelName] = new Dictionary<ulong, Matrix4>();
+
+                    storageDictionary.Add(worldModel.AddInstance(ref modelPosition), modelPosition);
                 }
             }
-
-            foreach (var modelInstance in Spawns.Values)
-            {
-                if (!modelInstance.Name.EndsWith(".m2"))
-                    continue;
-
-                modelInstance.InvertIndices();
-            }
-        }
-
-        public void Unload()
-        {
-            Spawns.Clear();
-        }
-
-        public void Render()
-        {
-            foreach (var modelInstance in Spawns.Values)
-                modelInstance.Render();
         }
     }
 }

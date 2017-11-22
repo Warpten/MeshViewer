@@ -36,6 +36,8 @@ namespace MeshViewer.Geometry.Terrain
             X = x;
             Y = y;
 
+            Program = ShaderProgramCache.Instance.Get("terrain");
+
             var file = Path.Combine(filePath, $"{MapID:D3}{y:D2}{x:D2}.map");
             if (!(FileExists = File.Exists(file)))
                 return;
@@ -60,16 +62,23 @@ namespace MeshViewer.Geometry.Terrain
 
         ~TerrainGridLoader()
         {
-            LiquidEntry = null;
-            LiquidFlags = null;
-            LiquidMap = null;
-            Holes = null;
-
-            V9 = null;
-            V8 = null;
-
-            _areaMap = null;
+            // Unload();
         }
+    
+        // public override void Unload()
+        // {
+        //     LiquidEntry = null;
+        //     LiquidFlags = null;
+        //     LiquidMap = null;
+        //     Holes = null;
+        // 
+        //     V9 = null;
+        //     V8 = null;
+        // 
+        //     _areaMap = null;
+        // 
+        //     base.Unload();
+        // }
 
         private const int V9_SIZE = 129;
         private const int V9_SIZE_SQ = V9_SIZE * V9_SIZE;
@@ -121,6 +130,10 @@ namespace MeshViewer.Geometry.Terrain
                 return false;
 
             var terrainIndiceOffset = 0;
+
+            ushort[] holetab_h = { 0x1111, 0x2222, 0x4444, 0x8888 };
+            ushort[] holetab_v = { 0x000F, 0x00F0, 0x0F00, 0xF000 };
+
             for (int square = 0; square < V8_SIZE_SQ; ++square)
             {
                 for (int j = 0; j < 2; ++j)
@@ -137,8 +150,6 @@ namespace MeshViewer.Geometry.Terrain
 
                         var hole = Holes[cellRow * 16 + cellCol];
 
-                        ushort[] holetab_h = { 0x1111, 0x2222, 0x4444, 0x8888 };
-                        ushort[] holetab_v = { 0x000F, 0x00F0, 0x0F00, 0xF000 };
                         useTerrain = (hole & holetab_h[holeCol] & holetab_v[holeRow]) == 0;
                     }
 
@@ -170,7 +181,6 @@ namespace MeshViewer.Geometry.Terrain
 
         private void CleanVertices(List<int> tris, List<float> verts)
         {
-            var vertMap = new Dictionary<int, float[]>();
             var cleanVerts = new List<float>();
             var cleanIndices = new List<int>();
             var indiceMap = new Dictionary<int, int>();

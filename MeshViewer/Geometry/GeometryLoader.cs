@@ -24,12 +24,6 @@ namespace MeshViewer.Geometry
             GameObjects = new GameObjectLoader(directory);
         }
 
-        public static void LoadTile(int tileX, int tileY)
-        {
-            Terrain.LoadTile(tileX, tileY);
-            Buildings.LoadTile(tileX, tileY);
-        }
-
         public static void Render(int centerTileX, int centerTileY)
         {
             Buffer.Bind();

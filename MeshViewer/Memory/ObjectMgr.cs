@@ -1,6 +1,5 @@
 ﻿using MeshViewer.Memory.Entities;
 using MeshViewer.Memory.Enums;
-using MeshViewer.Memory.Offsets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +8,6 @@ namespace MeshViewer.Memory
 {
     public sealed class ObjectMgr
     {
-        private const int NextObject    = 0x3C;
-        private const int FirstObject   = 0xC;
-        private const int LocalGUID     = 0xC8;
-
         private IntPtr _currentManager;
 
         private ulong _localGUID;
@@ -42,11 +37,17 @@ namespace MeshViewer.Memory
         /// </summary>
         public event Action OnWorldUpdate;
 
+        /// <summary>
+        /// This event triggers when the local player changes map.
+        /// First argument is the old map ID and second is the new one.
+        /// </summary>
+        public event Action<int, int> OnTeleport;
+
         public static int UpdateFrequency { get; set; } = 15;
 
         public ObjectMgr()
         {
-            if (!InGame)
+            if (!IsLoggedIn)
                 return;
         }
 
@@ -116,13 +117,13 @@ namespace MeshViewer.Memory
         /// <returns></returns>
         private IEnumerable<IntPtr> Enumerate()
         {
-            var currentObject = Game.Read<IntPtr>(_currentManager + FirstObject, true);
+            var currentObject = Game.Read<IntPtr>(_currentManager + 0xC, true);
 
             while (currentObject.ToInt32() != uint.MinValue && currentObject.ToInt32() % 2 == uint.MinValue)
             {
                 yield return currentObject;
 
-                currentObject = Game.Read<IntPtr>(currentObject.ToInt32() + NextObject, true);
+                currentObject = Game.Read<IntPtr>(currentObject.ToInt32() + 0x3C, true);
             }
         }
 
@@ -131,8 +132,12 @@ namespace MeshViewer.Memory
         /// </summary>
         public void Update()
         {
-            _currentManager = Game.Read<IntPtr>(Game.Read<int>(Cataclysm.CurMgrPointer) + Cataclysm.CurMgrOffset, true);
-            _localGUID = Game.Read<ulong>(_currentManager + LocalGUID, true);
+            // 8B 34 8A 8B 0D ?? ?? ?? ?? 89 81 ?? ?? ?? ?? 8B 15 ?? ?? ?? ??
+            // http://i.imgur.com/LIGX6AY.png
+            _currentManager = Game.Read<IntPtr>(Game.Read<int>(0x009BE7E0) + 0x463C, true);
+            _localGUID = Game.Read<ulong>(_currentManager + 0xC8, true);
+
+            CurrentMap = Game.Read<int>(_currentManager + 0xD4, true);
 
             foreach (var oldEntitiy in _entities)
                 oldEntitiy.Value.BaseAddressUpdated = false;
@@ -188,7 +193,20 @@ namespace MeshViewer.Memory
             OnWorldUpdate?.Invoke();
         }
 
-        public bool InGame => Game.Read<byte>(Cataclysm.OnLoginScreen) == 0;
-        public int CurrentMap => Game.Read<int>(_currentManager + Cataclysm.CurMapoffset, true);
+        // Script_IsLoggedIn
+        public bool IsLoggedIn => Game.Read<byte>(0x00ED7427) == 0;
+
+        private int _currentMapID;
+
+        public int CurrentMap
+        {
+            get => _currentMapID;
+            private set
+            {
+                if (_currentMapID != value)
+                    OnTeleport?.Invoke(_currentMapID, value);
+                _currentMapID = value;
+            }
+        }
     }
 }

@@ -126,12 +126,12 @@
             // 
             // toolStripCheckBox1
             // 
-            this.toolStripCheckBox1.Checked = false;
+            this.toolStripCheckBox1.Checked = true;
             this.toolStripCheckBox1.Name = "toolStripCheckBox1";
             this.toolStripCheckBox1.Padding = new System.Windows.Forms.Padding(10, 4, 0, 4);
             this.toolStripCheckBox1.Size = new System.Drawing.Size(147, 27);
             this.toolStripCheckBox1.Text = "Render GameObjects";
-            this.toolStripCheckBox1.OwnerChanged += new System.EventHandler(this.GameObjectDisplayToggled);
+            this.toolStripCheckBox1.CheckedChanged += new System.EventHandler(this.GameObjectDisplayToggled);
             // 
             // tabPage4
             // 

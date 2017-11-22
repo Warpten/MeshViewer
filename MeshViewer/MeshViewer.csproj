@@ -105,20 +105,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CollectionExtensions.cs" />
     <Compile Include="Data\DBC.cs" />
     <Compile Include="Data\Structures\ForeignKey.cs" />
     <Compile Include="Data\Structures\GameObjectDisplayInfoEntry.cs" />
     <Compile Include="Geometry\BIH.cs" />
     <Compile Include="Geometry\BinaryReaderExtensions.cs" />
+    <Compile Include="Geometry\Buildings\BuildingsLoader.cs" />
+    <Compile Include="Geometry\Buildings\BuildingsTileLoader.cs" />
     <Compile Include="Geometry\GameObjects\GameObjectLoader.cs" />
     <Compile Include="Geometry\GeometryLoader.cs" />
-    <Compile Include="Geometry\Terrain\MapLoader.cs" />
     <Compile Include="Geometry\Model\GroupModel.cs" />
     <Compile Include="Geometry\Model\ModelSpawn.cs" />
     <Compile Include="Geometry\Model\WorldModel.cs" />
     <Compile Include="Geometry\Terrain\TerrainGridLoader.cs" />
-    <Compile Include="Geometry\Buildings\BuildingsLoader.cs" />
-    <Compile Include="Geometry\Buildings\BuildingsTileLoader.cs" />
+    <Compile Include="Geometry\Terrain\MapLoader.cs" />
     <Compile Include="Interface\ComponentModel\Collection.cs" />
     <Compile Include="Interface\ComponentModel\CollectionConverter.cs" />
     <Compile Include="Interface\ComponentModel\EnumerableConverter.cs" />
@@ -178,7 +179,6 @@
     <Compile Include="Memory\Game.cs" />
     <Compile Include="Memory\ObjectGuid.cs" />
     <Compile Include="Memory\ObjectMgr.cs" />
-    <Compile Include="Memory\Offsets\Cataclysm.cs" />
     <Compile Include="Memory\SizeCache.cs" />
     <Compile Include="Memory\Structures\JamClientAuraInfo.cs" />
     <Compile Include="Memory\UnsafeMethods.cs" />

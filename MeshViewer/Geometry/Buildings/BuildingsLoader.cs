@@ -3,105 +3,100 @@ using MeshViewer.Memory;
 using MeshViewer.Rendering;
 using OpenTK;
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
-using System.Threading.Tasks;
+using System.Linq;
 
 namespace MeshViewer.Geometry.Buildings
 {
-    /// <summary>
-    /// This class handles rendering of what is typically vmaps (M2/WMO objects bound to the terrain).
-    /// </summary>
     public sealed class BuildingsLoader
     {
-        public bool IsTiled { get; }
-        // private BIH BIH { get; }
-        public int MapID { get; }
+        private ConcurrentDictionary<int, BuildingsTileLoader> _grids = new ConcurrentDictionary<int, BuildingsTileLoader>();
+        private bool _isTiled;
 
-        public ModelSpawn GlobalModel { get; }
-
-        private Dictionary<int, BuildingsTileLoader> Grids { get; } = new Dictionary<int, BuildingsTileLoader>();
-
-        private string Directory { get; }
+        private string _directory;
+        private int _mapId;
 
         public BuildingsLoader(string directory, int mapID)
         {
-            Directory = directory;
+            _directory = directory;
+            _mapId = mapID;
 
             using (var reader = new BinaryReader(File.OpenRead(Path.Combine(directory, "vmaps", $"{mapID:D3}.vmtree"))))
             {
-                if (reader == null)
-                    return;
-
-                MapID = mapID;
-
-                reader.BaseStream.Position += 8;
-                IsTiled = reader.ReadByte() == 1;
+                reader.BaseStream.Position += 8; // Skip signature
+                _isTiled = reader.ReadByte() == 1;
 
                 if (reader.ReadInt32() == 0x45444F4E) // NODE
                     BIH.Skip(reader);
-                
-                if (!IsTiled && reader.ReadInt32() == 0x4A424F47) // GOBJ
-                    GlobalModel = new ModelSpawn(directory, reader);
+
+                if (!_isTiled && reader.ReadInt32() == 0x4A424F47) // GOBJ
+                {
+                    // load global model
+                }
             }
-        }
-
-        public void LoadTile(int tileX, int tileY)
-        {
-            var gridHash = PackTile(tileX, tileY);
-            if (Grids.ContainsKey(gridHash))
-                return;
-
-            // Placeholder until loaded.
-            Grids[gridHash] = null;
-            Task.Factory.StartNew(() =>
-            {
-                var gridLoader = new BuildingsTileLoader(Directory, MapID, tileX, tileY);
-                if (gridLoader.FileExists)
-                    lock (Grids) Grids[gridHash] = gridLoader;
-            });
         }
 
         private int PackTile(int x, int y) => ((x & 0xFF) << 8) | (y & 0xFF);
 
-        static Vector3 WMO_COLOR = new Vector3(0.0f, 0.7f, 0.0f);
+        static Vector3 WMO_COLOR = new Vector3(0.063f, 0.886f, 0.243f);
+
         public void Render(int centerTileX, int centerTileY)
         {
-            if (IsTiled)
+            // todo implement global model
+            if (!_isTiled)
+                return;
+
+            var wmoProgram = ShaderProgramCache.Instance.Get("wmo");
+            var view = Matrix4.Mult(Game.Camera.View, Game.Camera.Projection);
+            var cameraDirection = Game.Camera.Forward;
+
+            wmoProgram.Use();
+            wmoProgram.UniformMatrix("projection_view", false, ref view);
+            wmoProgram.UniformVector("camera_direction", ref cameraDirection);
+            wmoProgram.UniformVector("object_color", ref WMO_COLOR);
+
+            const int MAX_CHUNK_DISTANCE = 1; /// Debugging
+
+            foreach (var kv in _grids)
             {
-                var wmoProgram = ShaderProgramCache.Instance.Get("wmo");
-                var view = Matrix4.Mult(Game.Camera.View, Game.Camera.Projection);
-                var cameraDirection = Game.Camera.Forward;
+                var xInRange = Math.Abs(kv.Value.X - centerTileX) <= MAX_CHUNK_DISTANCE;
+                var yInRange = Math.Abs(kv.Value.Y - centerTileY) <= MAX_CHUNK_DISTANCE;
 
-                wmoProgram.Use();
-                wmoProgram.UniformMatrix4("projection_view", false, ref view);
-                wmoProgram.UniformVector3("camera_direction", ref cameraDirection);
-                wmoProgram.UniformVector3("object_color", ref WMO_COLOR);
+                if (!xInRange || !yInRange)
+                    kv.Value.RemoveInstances();
+            }
 
-                const int MAX_CHUNK_DISTANCE = 1; /// Debugging
-
-                lock (Grids)
+            for (var i = centerTileY - MAX_CHUNK_DISTANCE; i <= centerTileY + MAX_CHUNK_DISTANCE; ++i)
+            {
+                for (var j = centerTileX - MAX_CHUNK_DISTANCE; j <= centerTileX + MAX_CHUNK_DISTANCE; ++j)
                 {
-                    foreach (var grid in Grids)
-                        if (grid.Value != null && Math.Abs(grid.Value.X - centerTileX) > MAX_CHUNK_DISTANCE && Math.Abs(grid.Value.Y - centerTileY) > MAX_CHUNK_DISTANCE)
-                            grid.Value.Unload();
+                    if (!_grids.TryGetValue(PackTile(j, i), out var gridRenderer))
+                        gridRenderer = LoadGrid(j, i);
 
-                    for (var i = centerTileY - MAX_CHUNK_DISTANCE; i <= centerTileY + MAX_CHUNK_DISTANCE; ++i)
-                        for (var j = centerTileX - MAX_CHUNK_DISTANCE; j <= centerTileX + MAX_CHUNK_DISTANCE; ++j)
-                            if (!Grids.ContainsKey(PackTile(j, i)))
-                                LoadTile(j, i);
-
-                    foreach (var mapGrid in Grids.Values)
-                    {
-                        if (mapGrid == null || !(Math.Abs(centerTileX - mapGrid.X) <= MAX_CHUNK_DISTANCE && Math.Abs(centerTileY - mapGrid.Y) <= MAX_CHUNK_DISTANCE))
-                            continue;
-
-                        mapGrid.Render();
-                    }
+                    gridRenderer.AddInstances();
                 }
             }
-            else if (GlobalModel != null)
-                GlobalModel.Render();
+
+            // Now that all instances are added, render everything in one single pass
+            foreach (var kv in _grids.SelectMany(grid => grid.Value.Models).Distinct())
+            {
+                var worldModel = WorldModelCache.OpenInstance(_directory, kv);
+                if (worldModel == null)
+                    continue;
+
+                worldModel.Render();
+            }
+        }
+
+        private BuildingsTileLoader LoadGrid(int tileX, int tileY)
+        {
+            var tileLoader = new BuildingsTileLoader();
+            tileLoader.LoadInstances(_directory, _mapId, tileX, tileY);
+
+            _grids[PackTile(tileX, tileY)] = tileLoader;
+
+            return tileLoader;
         }
     }
 }

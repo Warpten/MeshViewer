@@ -22,11 +22,9 @@ namespace MeshViewer.Rendering
 
         ~IndexedModel()
         {
-            // GL.DeleteVertexArray(VAO);
-            // GL.DeleteBuffer(VBO);
-            // GL.DeleteBuffer(EBO);
+            // Unload();
         }
-        
+    
         private bool _GenerateGeometry()
         {
             if (Valid)
@@ -60,11 +58,16 @@ namespace MeshViewer.Rendering
             return true;
         }
 
-        public void Unload()
+        public virtual void Unload()
         {
-            GL.DeleteBuffer(VBO);
-            GL.DeleteBuffer(EBO);
-            GL.DeleteVertexArray(VAO);
+            if (GL.IsBuffer(VBO))
+                GL.DeleteBuffer(VBO);
+
+            if (GL.IsBuffer(EBO))
+                GL.DeleteBuffer(EBO);
+
+            if (GL.IsVertexArray(VAO))
+                GL.DeleteVertexArray(VAO);
         }
 
         public void Render()
@@ -76,7 +79,7 @@ namespace MeshViewer.Rendering
                 _Render();
         }
 
-        public virtual void _Render()
+        protected virtual void _Render()
         {
             GL.BindVertexArray(VAO);
             switch (SizeCache<U>.Size)

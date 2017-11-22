@@ -78,7 +78,7 @@ namespace MeshViewer.Interface.Controls
         /// <param name="instance">The currently updated instance.</param>
         public void OnUpdate(CGObject_C instance)
         {
-            BeginInvoke((Action)(() =>
+            Invoke((Action)(() =>
             {
                 if (entityGrid.SelectedObjects?.Length == 0)
                     return;
@@ -113,6 +113,9 @@ namespace MeshViewer.Interface.Controls
         /// <param name="elements"></param>
         public void SetDataSource<T>(IEnumerable<T> elements) where T : CGObject_C
         {
+            if (IsDisposed)
+                return;
+
             if (olvColumn1.Renderer == null)
                 throw new InvalidOperationException("Bind a renderer before assigning objects!");
 

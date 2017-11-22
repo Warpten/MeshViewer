@@ -48,6 +48,9 @@ namespace MeshViewer.Rendering
             if (vertices == null || vertices?.Length == 0 || indices?.Length == 0 || instancePositions?.Length == 0 )
                 return false;
 
+            // if (indices.Length != 3546)
+            //     return false;
+
             IndiceCount = indices.Length;
             InstanceCount = instancePositions.Length;
 
@@ -69,9 +72,9 @@ namespace MeshViewer.Rendering
             GL.BindBuffer(BufferTarget.ArrayBuffer, InstancesPositionVBO);
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(instancePositions.Length * SizeCache<Matrix4>.Size), instancePositions, BufferUsageHint.StaticDraw);
 
-            Program.VertexAttribPointer<Matrix4>(InstancePositionAttribute, 16, VertexAttribPointerType.Float);
-            Program.VertexAttribDivisor<Matrix4>(InstancePositionAttribute, 1);
-            Program.EnableVertexAttribArray<Matrix4>(InstancePositionAttribute);
+            Program.VertexAttribPointer<Matrix4>(InstancePositionAttribute, 16, VertexAttribPointerType.Float); // Internally calls x4
+            Program.VertexAttribDivisor<Matrix4>(InstancePositionAttribute, 1); // Same
+            Program.EnableVertexAttribArray<Matrix4>(InstancePositionAttribute); // Aaand again
 
             GL.BindVertexArray(0);
 

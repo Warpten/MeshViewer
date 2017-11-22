@@ -1,7 +1,6 @@
 ﻿using MeshViewer.Rendering;
 using OpenTK;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 
 namespace MeshViewer.Geometry.Model
@@ -9,10 +8,8 @@ namespace MeshViewer.Geometry.Model
     public sealed class WorldModel
     {
         private GroupModel[] GroupModels { get; set; }
-        // public BIH GroupTree { get; }
-        public int RootWmoID { get; }
-
-        public bool Valid => GroupModels != null;
+        private ulong _instanceGUID = 0;
+        public bool Valid => GroupModels != null && GroupModels.Length != 0;
 
         public WorldModel(string directory, string modelName)
         {
@@ -25,10 +22,7 @@ namespace MeshViewer.Geometry.Model
                 reader.BaseStream.Position += 8;
 
                 if (reader.ReadInt32() == 0x444F4D57) // WMOD
-                {
-                    var chunkSize = reader.ReadInt32(); // 8
-                    RootWmoID = reader.ReadInt32();
-                }
+                    reader.BaseStream.Position += 8; // chunk size + root wmo id
 
                 if (reader.ReadInt32() == 0x444F4D47) // GMOD
                 {
@@ -41,10 +35,10 @@ namespace MeshViewer.Geometry.Model
                             VerticeAttribute = "vertexPosition_modelSpace",
                             InstancePositionAttribute = "instance_position",
                         };
-                    }
 
-                    // if (reader.ReadInt32() == 0x48494247) // GIH
-                    //     BIH.Skip(reader);
+                        if (modelName.EndsWith(".m2"))
+                            GroupModels[i].InvertIndices();
+                    }
                 }
             }
         }
@@ -55,27 +49,31 @@ namespace MeshViewer.Geometry.Model
                 model.Render();
         }
 
-        public void AddInstance(ref Matrix4 positionMatrix)
-        {
+        public ulong AddInstance(ref Matrix4 positionMatrix)
+        { 
             foreach (var model in GroupModels)
-                model.AddInstance(ref positionMatrix);
+                model.AddInstance(ref positionMatrix, _instanceGUID);
+            return _instanceGUID++;
         }
 
-        public void RemoveInstance(ref Matrix4 positionMatrix)
+        public ulong AddInstance(ref Matrix4 positionMatrix, ulong existingGUID)
         {
             foreach (var model in GroupModels)
-                model.RemoveInstance(ref positionMatrix);
+                model.AddInstance(ref positionMatrix, existingGUID);
+            return existingGUID;
         }
 
-        public void InvertIndices()
+        public void RemoveInstance(ulong instanceGUID)
         {
-            foreach (var m in GroupModels)
-                m.InvertIndices();
+            foreach (var model in GroupModels)
+                model.RemoveInstance(instanceGUID);
         }
     }
 
     public class WorldModelCache
     {
+        private static WorldModelCache _instance = new WorldModelCache();
+
         private ConcurrentDictionary<string, WorldModel> _store = new ConcurrentDictionary<string, WorldModel>();
 
         public static WorldModel OpenInstance(string directory, string modelName)
@@ -91,8 +89,6 @@ namespace MeshViewer.Geometry.Model
 
             return modelInstance;
         }
-
-        private static WorldModelCache _instance = new WorldModelCache();
 
         ~WorldModelCache()
         {

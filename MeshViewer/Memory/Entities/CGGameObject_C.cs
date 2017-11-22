@@ -71,23 +71,18 @@ namespace MeshViewer.Memory.Entities
             if (GeometryLoader.GameObjects == null || _spawned)
                 return;
 
-            _spawned = GeometryLoader.GameObjects.AddInstance(this);
+            _instanceGUID = GeometryLoader.GameObjects.AddInstance(this);
+            _spawned = _instanceGUID != ulong.MaxValue;
         }
 
-        public override void OnUpdate()
-        {
-            if (GeometryLoader.GameObjects == null || _spawned)
-                return;
-
-            _spawned = GeometryLoader.GameObjects.AddInstance(this);
-        }
+        public override void OnUpdate() => OnSpawn();
 
         public override void OnDespawn()
         {
             if (GeometryLoader.GameObjects == null || !_spawned)
                 return;
 
-            if (GeometryLoader.GameObjects.RemoveInstance(this))
+            if (GeometryLoader.GameObjects.RemoveInstance(_instanceGUID, this))
                 _spawned = false;
         }
 
@@ -113,5 +108,6 @@ namespace MeshViewer.Memory.Entities
 
         public Matrix4 PositionMatrix => Read<Matrix4>(BaseAddress + 0x1D0);
         private bool _spawned = false;
+        private ulong _instanceGUID;
     }
 }
