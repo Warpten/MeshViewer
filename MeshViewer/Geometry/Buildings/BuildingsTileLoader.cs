@@ -65,6 +65,9 @@ namespace MeshViewer.Geometry.Buildings
 
             var filePath = Path.Combine(directory, "vmaps", $"{mapID:D3}_{tileX:D2}_{tileY:D2}.vmtile");
 
+            if (!File.Exists(filePath))
+                return;
+
             using (var reader = new BinaryReader(File.OpenRead(filePath)))
             {
                 reader.BaseStream.Position += 8; // Skip magic
