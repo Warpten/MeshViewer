@@ -58,20 +58,23 @@ namespace MeshViewer.Geometry.Model
 
         public void AddInstance(ref Matrix4 spawn, ulong instanceGUID)
         {
-            /*if (!*/_instances.TryAdd(instanceGUID, spawn)/*)
-                throw new InvalidOperationException()*/;
+            lock (_instances)
+                _instances.Add(instanceGUID, spawn);
         }
 
         public void RemoveInstance(ulong instanceGUID)
         {
-            _instances.Remove(instanceGUID);
+            lock (_instances)
+                _instances.Remove(instanceGUID);
         }
 
         protected override bool BindData(ref Vector3[] vertices, ref uint[] indices, ref Matrix4[] instancePositions)
         {
             vertices = _modelVertices;
             indices = _modelIndices;
-            instancePositions = _instances.Values.ToArray();
+
+            lock (_instances)
+                instancePositions = _instances.Values.ToArray();
 
             _modelVertices = null;
             _modelIndices = null;

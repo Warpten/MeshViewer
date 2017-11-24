@@ -50,8 +50,6 @@ namespace MeshViewer.Geometry.GameObjects
             if (gameObject.DisplayInfo == null || !_models.TryGetValue(gameObject.DisplayInfo.ID, out var modelInstance))
                 return false;
 
-            var positionMatrix = gameObject.PositionMatrix;
-
             modelInstance.RemoveInstance(instanceGUID);
             return true;
         }
@@ -63,13 +61,15 @@ namespace MeshViewer.Geometry.GameObjects
             if (gameObject.DisplayInfo == null)
                 return ulong.MaxValue;
 
+            var gameObjectDisplayInfo = gameObject.DisplayInfo;
+
             var positionMatrix = gameObject.PositionMatrix;
-            var entry = gameObject.DisplayInfo.ID;
+            var entry = gameObjectDisplayInfo.ID;
 
             if (_models.TryGetValue(entry, out WorldModel instance))
                 return instance.AddInstance(ref positionMatrix);
 
-            var modelSpawn = WorldModelCache.OpenInstance(_directory, Path.GetFileName(gameObject.DisplayInfo.Filename).Replace(".mdx", ".m2"));
+            var modelSpawn = WorldModelCache.OpenInstance(_directory, Path.GetFileName(gameObjectDisplayInfo.Filename).Replace(".mdx", ".m2"));
             if (modelSpawn == null)
                 return ulong.MaxValue;
 

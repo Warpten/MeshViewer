@@ -194,7 +194,7 @@ namespace MeshViewer.Memory
         }
 
         // Script_IsLoggedIn
-        public bool IsLoggedIn => Game.Read<byte>(0x00ED7427) == 0;
+        public bool IsLoggedIn => Game.Read<byte>(0x00ED7427 - 0x400000) == 0;
 
         private int _currentMapID;
 

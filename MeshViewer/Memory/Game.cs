@@ -79,7 +79,7 @@ namespace MeshViewer.Memory
 
         #region ObjectMgr shorthands
         public static int CurrentMap => Manager?.CurrentMap ?? -1;
-        public static bool InGame => Manager?.IsLoggedIn ?? false;
+        public static bool IsLoggedIn => Manager?.IsLoggedIn ?? false;
 
         public static CGPlayer_C LocalPlayer      => Manager?.LocalPlayer ?? null;
 

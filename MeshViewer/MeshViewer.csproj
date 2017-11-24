@@ -105,7 +105,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CollectionExtensions.cs" />
     <Compile Include="Data\DBC.cs" />
     <Compile Include="Data\Structures\ForeignKey.cs" />
     <Compile Include="Data\Structures\GameObjectDisplayInfoEntry.cs" />

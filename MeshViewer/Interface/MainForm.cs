@@ -59,7 +59,7 @@ namespace MeshViewer.Interface
                     Game.Update();
 
                     Invoke((Action)(() => {
-                        if (!Game.InGame)
+                        if (!Game.IsLoggedIn)
                             return;
 
                         var localPlayer = Game.LocalPlayer;
@@ -199,7 +199,7 @@ namespace MeshViewer.Interface
 
             Invoke((Action)(() =>
             {
-                if (!GeometryLoader.Initialized && Game.InGame)
+                if (!GeometryLoader.Initialized && Game.IsLoggedIn)
                 {
                     var directoryPickerDialog = new CommonOpenFileDialog() { IsFolderPicker = true };
                     if (directoryPickerDialog.ShowDialog() != CommonFileDialogResult.Ok)
