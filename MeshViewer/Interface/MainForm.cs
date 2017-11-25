@@ -207,7 +207,7 @@ namespace MeshViewer.Interface
 
                     DBC.AsyncInitialize(directoryPickerDialog.FileName);
 
-                    GeometryLoader.Initialize(directoryPickerDialog.FileName, Game.CurrentMap);
+                    GeometryLoader.Initialize(string.Intern(directoryPickerDialog.FileName), Game.CurrentMap);
                 }
 
                 _renderControl.Invalidate();

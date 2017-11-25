@@ -35,7 +35,7 @@ namespace MeshViewer.Geometry.Model
                 reader.BaseStream.Position += 4 * 6; // BBox
 
             var nameLength = reader.ReadInt32();
-            ModelName = System.Text.Encoding.UTF8.GetString(reader.ReadBytes(nameLength));
+            ModelName = string.Intern(System.Text.Encoding.UTF8.GetString(reader.ReadBytes(nameLength)));
         }
     }
 }
