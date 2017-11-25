@@ -273,5 +273,10 @@ namespace MeshViewer.Interface
         {
             GeometryLoader.GameObjects.Enabled = (sender as CheckBox).Checked;
         }
+
+        private void OnTopMostToggled(object sender, EventArgs e)
+        {
+            TopMost = (sender as CheckBox).Checked;
+        }
     }
 }

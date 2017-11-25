@@ -47,6 +47,7 @@
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this._renderControl = new OpenTK.GLControl();
             this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.toolStripCheckBox2 = new MeshViewer.Interface.Controls.ToolStripCheckBox();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabPage4.SuspendLayout();
@@ -63,6 +64,7 @@
             this.attachToolStripMenuItem,
             this.refreshToolStripMenuItem,
             this.captureScreenshotToolStripMenuItem,
+            this.toolStripCheckBox2,
             this.settingsToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
@@ -237,6 +239,15 @@
             this.tabControl1.Size = new System.Drawing.Size(815, 517);
             this.tabControl1.TabIndex = 1;
             // 
+            // toolStripCheckBox2
+            // 
+            this.toolStripCheckBox2.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.toolStripCheckBox2.Checked = false;
+            this.toolStripCheckBox2.Name = "toolStripCheckBox2";
+            this.toolStripCheckBox2.Size = new System.Drawing.Size(101, 20);
+            this.toolStripCheckBox2.Text = "Always on top";
+            this.toolStripCheckBox2.CheckedChanged += new System.EventHandler(this.OnTopMostToggled);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -285,5 +296,6 @@
         private OpenTK.GLControl _renderControl;
         private System.Windows.Forms.TabControl tabControl1;
         private Controls.ToolStripCheckBox toolStripCheckBox1;
+        private Controls.ToolStripCheckBox toolStripCheckBox2;
     }
 }

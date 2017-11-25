@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenTK.Graphics.OpenGL;
 using MeshViewer.Memory;
+using System.Collections.Concurrent;
 
 namespace MeshViewer.Rendering
 {
@@ -16,7 +17,7 @@ namespace MeshViewer.Rendering
         private ulong _instanceGuidGenerator;
         private bool _dirty;
 
-        private Dictionary<ulong, Matrix4> _instances = new Dictionary<ulong, Matrix4>();
+        private ConcurrentDictionary<ulong, Matrix4> _instances = new ConcurrentDictionary<ulong, Matrix4>();
 
         public InstancedBatchedIndexedModel(string shaderProgramName)
         {
@@ -28,7 +29,7 @@ namespace MeshViewer.Rendering
 
         public ulong AddInstance(ref Matrix4 instanceMatrix)
         {
-            _instances.Add(_instanceGuidGenerator, instanceMatrix);
+            _instances.TryAdd(_instanceGuidGenerator, instanceMatrix);
             var instanceID = _instanceGuidGenerator;
             _instanceGuidGenerator++;
 
@@ -39,7 +40,7 @@ namespace MeshViewer.Rendering
 
         public void RemoveInstance(ulong instanceGUID)
         {
-            _instances.Remove(instanceGUID);
+            _instances.TryRemove(instanceGUID, out var tmp);
 
             _dirty = true;
         }
@@ -69,12 +70,25 @@ namespace MeshViewer.Rendering
                     _program.VertexAttribPointer<Matrix4>("instance_position", 16, VertexAttribPointerType.Float);
                     _program.VertexAttribDivisor<Matrix4>("instance_position", 1);
                     _program.EnableVertexAttribArray<Matrix4>("instance_position");
+
+                    // Stop buffering the data to the GPU
+                    _dirty = false;
+                }
+                else if (_dirty)
+                {
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, _instanceVBO);
+                    GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(SizeCache<TInstance>.Size * _instances.Count), _instances.Values.ToArray(), BufferUsageHint.StaticDraw);
+
+                    _program.VertexAttribPointer<Matrix4>("instance_position", 16, VertexAttribPointerType.Float);
+                    _program.VertexAttribDivisor<Matrix4>("instance_position", 1);
+                    _program.EnableVertexAttribArray<Matrix4>("instance_position");
+
+                    // Stop buffering the data to the GPU
+                    _dirty = false;
                 }
 
                 batch.Render(_instances.Count);
             }
-
-            _dirty = false;
         }
 
         protected void AddBatch(IndexedModelBatch<TVertice, TIndice> batch)
