@@ -15,7 +15,9 @@ namespace MeshViewer.Rendering
 
         private int _instanceVBO;
         private ulong _instanceGuidGenerator;
-        private bool _dirty;
+        private int _instanceDiff; // Total amount of modifications to instances since last draw.
+        private bool _dirty; // Set when modifying the amount of instances
+        private bool _forcedDirty; // Set when updating an instance
 
         private ConcurrentDictionary<ulong, Matrix4> _instances = new ConcurrentDictionary<ulong, Matrix4>();
 
@@ -23,8 +25,11 @@ namespace MeshViewer.Rendering
         {
             _program = ShaderProgramCache.Instance.Get(shaderProgramName);
 
-            _instanceGuidGenerator = 0;
             _dirty = true;
+            _instanceGuidGenerator = 0;
+            _instanceDiff = 0;
+
+            _forcedDirty = false;
         }
 
         public ulong AddInstance(ref Matrix4 instanceMatrix)
@@ -33,6 +38,7 @@ namespace MeshViewer.Rendering
             var instanceID = _instanceGuidGenerator;
             _instanceGuidGenerator++;
 
+            ++_instanceDiff;
             _dirty = true;
 
             return instanceID;
@@ -42,6 +48,7 @@ namespace MeshViewer.Rendering
         {
             _instances.TryRemove(instanceGUID, out var tmp);
 
+            --_instanceDiff;
             _dirty = true;
         }
 
@@ -52,6 +59,7 @@ namespace MeshViewer.Rendering
 
             _instances[instanceGUID] = instanceMatrix;
 
+            _forcedDirty = true;
             _dirty = true;
             return true;
         }
@@ -78,19 +86,15 @@ namespace MeshViewer.Rendering
                 if (firstDrawCall || _dirty)
                 {
                     GL.BindBuffer(BufferTarget.ArrayBuffer, _instanceVBO);
-                    if (i == 0)
-                        GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(SizeCache<TInstance>.Size * _instances.Count), _instances.Values.ToArray(), BufferUsageHint.StaticDraw);
+                    if (i == 0 && (_instanceDiff != 0 || _forcedDirty))
+                    {
+                        if (_instanceDiff >= 0)
+                            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(SizeCache<TInstance>.Size * _instances.Count), _instances.Values.ToArray(), BufferUsageHint.StaticDraw);
+                        else
+                            GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, (IntPtr)(SizeCache<TInstance>.Size * _instances.Count), _instances.Values.ToArray());
 
-                    _program.VertexAttribPointer<Matrix4>("instance_position", 16, VertexAttribPointerType.Float);
-                    _program.VertexAttribDivisor<Matrix4>("instance_position", 1);
-                    _program.EnableVertexAttribArray<Matrix4>("instance_position");
-                }
-                else if (_dirty)
-                {
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, _instanceVBO);
-                    if (i == 0)
-                        GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(SizeCache<TInstance>.Size * _instances.Count), _instances.Values.ToArray(), BufferUsageHint.StaticDraw);
-
+                        _instanceDiff = 0;
+                    }
                     _program.VertexAttribPointer<Matrix4>("instance_position", 16, VertexAttribPointerType.Float);
                     _program.VertexAttribDivisor<Matrix4>("instance_position", 1);
                     _program.EnableVertexAttribArray<Matrix4>("instance_position");
@@ -100,6 +104,7 @@ namespace MeshViewer.Rendering
             }
 
             _dirty = false;
+            _forcedDirty = false;
         }
 
         protected void AddBatch(IndexedModelBatch<TVertice, TIndice> batch)
