@@ -88,10 +88,10 @@ namespace MeshViewer.Rendering
                     GL.BindBuffer(BufferTarget.ArrayBuffer, _instanceVBO);
                     if (i == 0 && (_instanceDiff != 0 || _forcedDirty))
                     {
-                        if (_instanceDiff >= 0)
+                        //if (_instanceDiff >= 0)
                             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(SizeCache<TInstance>.Size * _instances.Count), _instances.Values.ToArray(), BufferUsageHint.StaticDraw);
-                        else
-                            GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, (IntPtr)(SizeCache<TInstance>.Size * _instances.Count), _instances.Values.ToArray());
+                        //else
+                        //    GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, (IntPtr)(SizeCache<TInstance>.Size * _instances.Count), _instances.Values.ToArray());
 
                         _instanceDiff = 0;
                     }
