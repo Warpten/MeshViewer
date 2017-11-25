@@ -45,50 +45,61 @@ namespace MeshViewer.Rendering
             _dirty = true;
         }
 
+        public bool UpdateInstance(ulong instanceGUID, ref Matrix4 instanceMatrix)
+        {
+            if (!_instances.ContainsKey(instanceGUID))
+                return false;
+
+            _instances[instanceGUID] = instanceMatrix;
+
+            _dirty = true;
+            return true;
+        }
+
         public void Render()
         {
             if (_instances.Count == 0)
                 return;
 
-            var firstFrame = !GL.IsBuffer(_instanceVBO);
-
-            foreach (var batch in _batches)
+            var firstDrawCall = !GL.IsBuffer(_instanceVBO);
+            for (var i = 0; i < _batches.Count; ++i)
             {
-                if (firstFrame)
+                var batch = _batches[i];
+
+                if (firstDrawCall)
+                {
                     batch.CreateBuffers();
+                    if (i == 0)
+                        _instanceVBO = GL.GenBuffer();
+                }
 
                 GL.BindVertexArray(batch.VertexArray);
 
-                if (firstFrame)
+                if (firstDrawCall || _dirty)
                 {
-                    _instanceVBO = GL.GenBuffer();
-
                     GL.BindBuffer(BufferTarget.ArrayBuffer, _instanceVBO);
-                    if (_dirty)
+                    if (i == 0)
                         GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(SizeCache<TInstance>.Size * _instances.Count), _instances.Values.ToArray(), BufferUsageHint.StaticDraw);
 
                     _program.VertexAttribPointer<Matrix4>("instance_position", 16, VertexAttribPointerType.Float);
                     _program.VertexAttribDivisor<Matrix4>("instance_position", 1);
                     _program.EnableVertexAttribArray<Matrix4>("instance_position");
-
-                    // Stop buffering the data to the GPU
-                    _dirty = false;
                 }
                 else if (_dirty)
                 {
                     GL.BindBuffer(BufferTarget.ArrayBuffer, _instanceVBO);
-                    GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(SizeCache<TInstance>.Size * _instances.Count), _instances.Values.ToArray(), BufferUsageHint.StaticDraw);
+                    if (i == 0)
+                        GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(SizeCache<TInstance>.Size * _instances.Count), _instances.Values.ToArray(), BufferUsageHint.StaticDraw);
 
                     _program.VertexAttribPointer<Matrix4>("instance_position", 16, VertexAttribPointerType.Float);
                     _program.VertexAttribDivisor<Matrix4>("instance_position", 1);
                     _program.EnableVertexAttribArray<Matrix4>("instance_position");
-
-                    // Stop buffering the data to the GPU
-                    _dirty = false;
                 }
 
                 batch.Render(_instances.Count);
             }
+
+            _dirty = false;
         }
 
         protected void AddBatch(IndexedModelBatch<TVertice, TIndice> batch)

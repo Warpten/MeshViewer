@@ -75,7 +75,20 @@ namespace MeshViewer.Memory.Entities
             _spawned = _instanceGUID != ulong.MaxValue;
         }
 
-        public override void OnUpdate() => OnSpawn();
+        public override void OnUpdate()
+        {
+            if (GeometryLoader.GameObjects == null)
+                return;
+
+            if (!_spawned)
+            {
+                OnSpawn();
+            }
+            else
+            {
+                GeometryLoader.GameObjects.UpdateInstance(_instanceGUID, this);
+            }
+        }
 
         public override void OnDespawn()
         {

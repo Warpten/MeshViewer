@@ -80,5 +80,30 @@ namespace MeshViewer.Geometry.GameObjects
 
             return modelInstanceGUID;
         }
+
+        public bool UpdateInstance(ulong instanceGUID, CGGameObject_C gameObject)
+        {
+            if (gameObject.DisplayInfo == null)
+                return false;
+
+            var gameObjectDisplayInfo = gameObject.DisplayInfo;
+
+            var positionMatrix = gameObject.PositionMatrix;
+            var entry = gameObjectDisplayInfo.ID;
+
+            if (_models.TryGetValue(entry, out WorldModel instance))
+                return instance.UpdateInstance(instanceGUID, ref positionMatrix);
+
+            var modelSpawn = WorldModelCache.OpenInstance(_directory, Path.GetFileName(gameObjectDisplayInfo.Filename).Replace(".mdx", ".m2"));
+            if (modelSpawn == null)
+                return false;
+
+            var modelInstanceGUID = modelSpawn.UpdateInstance(instanceGUID, ref positionMatrix);
+
+            // reference type, so it is irrelevant if we didn't manage to save it - a thread did before us!
+            _models.TryAdd(gameObject.DisplayInfo.ID, modelSpawn);
+
+            return modelInstanceGUID;
+        }
     }
 }
