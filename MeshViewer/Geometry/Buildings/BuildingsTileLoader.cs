@@ -51,7 +51,7 @@ namespace MeshViewer.Geometry.Buildings
                 foreach (var kv2 in kv.Value)
                 {
                     var instanceMatrix = kv2.Value;
-                    worldModel.AddInstance(ref instanceMatrix, kv2.Key);
+                    worldModel.AddInstance(ref instanceMatrix);
                 }
             }
         }
@@ -89,6 +89,8 @@ namespace MeshViewer.Geometry.Buildings
                     storageDictionary.Add(worldModel.AddInstance(ref modelPosition), modelPosition);
                 }
             }
+
+            _instancesRendered = true;
         }
     }
 }

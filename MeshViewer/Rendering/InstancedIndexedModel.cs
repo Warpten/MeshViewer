@@ -5,108 +5,82 @@ using System;
 
 namespace MeshViewer.Rendering
 {
-    public abstract class InstancedIndexedModel<T, U> where T : struct where U : struct
+    public abstract class IndexedModelBatch<TVertices, TIndices> where TVertices : struct where TIndices : struct
     {
-        ~InstancedIndexedModel()
-        {
-            // GL.DeleteVertexArray(VAO);
-            // GL.DeleteBuffer(VBO);
-            // GL.DeleteBuffer(EBO);
-            // GL.DeleteBuffer(InstancesPositionVBO);
-        }
-
         private int IndiceCount { get; set; }
-        public int VAO { get; private set; }
-        public int VBO { get; private set; }
-        public int EBO { get; private set; }
-
-        public int InstancesPositionVBO { get; private set; }
+        public int VertexArray { get; private set; }
+        public int _verticesBuffer { get; private set; }
+        public int _indicesBuffer { get; private set; }
 
         public ShaderProgram Program { get; set; }
 
-        public string VerticeAttribute { get; set; }
-        public string InstancePositionAttribute { get; set; }
-
-        public bool Valid => GL.IsVertexArray(VAO);
+        public bool Valid => GL.IsVertexArray(VertexArray);
 
         public PrimitiveType Primitive { get; set; } = PrimitiveType.Triangles;
-        public int InstanceCount { get; set; } = 0;
 
-        protected abstract bool BindData(ref T[] vertices, ref U[] indices, ref Matrix4[] instancePositions);
+        protected abstract bool BindData(ref TVertices[] vertices, ref TIndices[] indices);
 
         private bool _GenerateGeometry()
         {
-            if (Valid)
+            if (IndiceCount != 0)
                 return true;
 
-            T[] vertices = null;
-            U[] indices = null;
-            Matrix4[] instancePositions = null;
-            if (!BindData(ref vertices, ref indices, ref instancePositions))
+            TVertices[] vertices = null;
+            TIndices[] indices = null;
+            if (!BindData(ref vertices, ref indices))
                 return false;
 
-            if (vertices == null || vertices?.Length == 0 || indices?.Length == 0 || instancePositions?.Length == 0 )
+            if (vertices?.Length == 0 || indices?.Length == 0 || indices == null || vertices == null)
                 return false;
-
-            // if (indices.Length != 3546)
-            //     return false;
 
             IndiceCount = indices.Length;
-            InstanceCount = instancePositions.Length;
 
-            VAO = GL.GenVertexArray();
-            GL.BindVertexArray(VAO);
+            _verticesBuffer = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _verticesBuffer);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertices.Length * SizeCache<TVertices>.Size), vertices, BufferUsageHint.StaticDraw);
 
-            VBO = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertices.Length * SizeCache<T>.Size), vertices, BufferUsageHint.StaticDraw);
+            Program.VertexAttribPointer<Vector3>("vertexPosition_modelSpace", 3, VertexAttribPointerType.Float);
+            Program.EnableVertexAttribArray<Vector3>("vertexPosition_modelSpace");
 
-            Program.VertexAttribPointer<Vector3>(VerticeAttribute, 3, VertexAttribPointerType.Float);
-            Program.EnableVertexAttribArray<Vector3>(VerticeAttribute);
-
-            EBO = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, EBO);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(indices.Length * SizeCache<U>.Size), indices, BufferUsageHint.StaticDraw);
-
-            InstancesPositionVBO = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, InstancesPositionVBO);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(instancePositions.Length * SizeCache<Matrix4>.Size), instancePositions, BufferUsageHint.StaticDraw);
-
-            Program.VertexAttribPointer<Matrix4>(InstancePositionAttribute, 16, VertexAttribPointerType.Float); // Internally calls x4
-            Program.VertexAttribDivisor<Matrix4>(InstancePositionAttribute, 1); // Same
-            Program.EnableVertexAttribArray<Matrix4>(InstancePositionAttribute); // Aaand again
-
-            GL.BindVertexArray(0);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _indicesBuffer);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(indices.Length * SizeCache<TIndices>.Size), indices, BufferUsageHint.StaticDraw);
 
             return true;
         }
 
-        public void Render()
+        public void CreateBuffers()
         {
-            if (!Valid)
-                _GenerateGeometry();
-
-            if (Valid)
-                _Render();
+            VertexArray = GL.GenVertexArray();
+            _verticesBuffer = GL.GenBuffer();
+            _indicesBuffer = GL.GenBuffer();
         }
 
-        public virtual void _Render()
+        public void Render(int instanceCount)
         {
-            GL.BindVertexArray(VAO);
-            switch (SizeCache<U>.Size)
+            if (!_GenerateGeometry())
+                return;
+
+            // There's no need to bind the VAO here - we are already binding it in InstancedBatchedIndexedModel!
+
+            switch (SizeCache<TIndices>.Size)
             {
                 case 4:
-                    GL.DrawElementsInstanced(Primitive, IndiceCount, DrawElementsType.UnsignedInt, IntPtr.Zero, InstanceCount);
+                    GL.DrawElementsInstanced(Primitive, IndiceCount, DrawElementsType.UnsignedInt, IntPtr.Zero, instanceCount);
                     break;
                 case 2:
-                    GL.DrawElementsInstanced(Primitive, IndiceCount, DrawElementsType.UnsignedShort, IntPtr.Zero, InstanceCount);
+                    GL.DrawElementsInstanced(Primitive, IndiceCount, DrawElementsType.UnsignedShort, IntPtr.Zero, instanceCount);
                     break;
                 case 1:
-                    GL.DrawElementsInstanced(Primitive, IndiceCount, DrawElementsType.UnsignedByte, IntPtr.Zero, InstanceCount);
+                    GL.DrawElementsInstanced(Primitive, IndiceCount, DrawElementsType.UnsignedByte, IntPtr.Zero, instanceCount);
                     break;
                 default:
                     throw new InvalidOperationException();
             }
+        }
+
+        public virtual void _Render()
+        {
+            throw new InvalidOperationException();
         }
     }
 }

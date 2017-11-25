@@ -5,13 +5,9 @@ using System.IO;
 
 namespace MeshViewer.Geometry.Model
 {
-    public sealed class WorldModel
+    public sealed class WorldModel : InstancedBatchedIndexedModel<uint, Vector3, Matrix4>
     {
-        private GroupModel[] GroupModels { get; set; }
-        private ulong _instanceGUID = 0;
-        public bool Valid => GroupModels != null && GroupModels.Length != 0;
-
-        public WorldModel(string directory, string modelName)
+        public WorldModel(string directory, string modelName, string shaderProgramName) : base(shaderProgramName)
         {
             var filePath = Path.Combine(directory, "vmaps", $"{modelName}.vmo");
             if (!File.Exists(filePath))
@@ -26,48 +22,23 @@ namespace MeshViewer.Geometry.Model
 
                 if (reader.ReadInt32() == 0x444F4D47) // GMOD
                 {
-                    GroupModels = new GroupModel[reader.ReadInt32()];
-                    for (var i = 0; i < GroupModels.Length; ++i)
+                    var modelCount = reader.ReadInt32();
+                    for (var i = 0; i < modelCount; ++i)
                     {
-                        GroupModels[i] = new GroupModel(reader)
+                        var model = new GroupModel(reader)
                         {
-                            Program = ShaderProgramCache.Instance.Get("wmo"),
-                            VerticeAttribute = "vertexPosition_modelSpace",
-                            InstancePositionAttribute = "instance_position",
+                            Program = ShaderProgramCache.Instance.Get("wmo")
                         };
 
                         if (modelName.EndsWith(".m2"))
-                            GroupModels[i].InvertIndices();
+                            model.InvertIndices();
+
+                        AddBatch(model);
                     }
                 }
             }
         }
 
-        public void Render()
-        {
-            foreach (var model in GroupModels)
-                model.Render();
-        }
-
-        public ulong AddInstance(ref Matrix4 positionMatrix)
-        { 
-            foreach (var model in GroupModels)
-                model.AddInstance(ref positionMatrix, _instanceGUID);
-            return _instanceGUID++;
-        }
-
-        public ulong AddInstance(ref Matrix4 positionMatrix, ulong existingGUID)
-        {
-            foreach (var model in GroupModels)
-                model.AddInstance(ref positionMatrix, existingGUID);
-            return existingGUID;
-        }
-
-        public void RemoveInstance(ulong instanceGUID)
-        {
-            foreach (var model in GroupModels)
-                model.RemoveInstance(instanceGUID);
-        }
     }
 
     public class WorldModelCache
@@ -80,9 +51,7 @@ namespace MeshViewer.Geometry.Model
         {
             if (!_instance._store.TryGetValue(modelName, out var modelInstance))
             {
-                modelInstance = new WorldModel(directory, modelName);
-                if (modelInstance == null || !modelInstance.Valid)
-                    return null;
+                modelInstance = new WorldModel(directory, modelName, "wmo");
 
                 _instance._store.TryAdd(modelName, modelInstance);
             }

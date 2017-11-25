@@ -2,17 +2,13 @@
 using System.IO;
 using MeshViewer.Rendering;
 using MeshViewer.Memory;
-using System.Linq;
-using System.Collections.Generic;
 
 namespace MeshViewer.Geometry.Model
 {
-    public sealed class GroupModel : InstancedIndexedModel<Vector3, uint>
+    public sealed class GroupModel : IndexedModelBatch<Vector3, uint>
     {
         public Vector3[] _modelVertices { get; private set; }
         public uint[] _modelIndices { get; private set; }
-
-        private Dictionary<ulong, Matrix4> _instances = new Dictionary<ulong, Matrix4>();
 
         public GroupModel(BinaryReader reader)
         {
@@ -56,25 +52,13 @@ namespace MeshViewer.Geometry.Model
             }
         }
 
-        public void AddInstance(ref Matrix4 spawn, ulong instanceGUID)
+        protected override bool BindData(ref Vector3[] vertices, ref uint[] indices)
         {
-            lock (_instances)
-                _instances.Add(instanceGUID, spawn);
-        }
+            if (_modelVertices == null || _modelIndices == null)
+                return true;
 
-        public void RemoveInstance(ulong instanceGUID)
-        {
-            lock (_instances)
-                _instances.Remove(instanceGUID);
-        }
-
-        protected override bool BindData(ref Vector3[] vertices, ref uint[] indices, ref Matrix4[] instancePositions)
-        {
             vertices = _modelVertices;
             indices = _modelIndices;
-
-            lock (_instances)
-                instancePositions = _instances.Values.ToArray();
 
             _modelVertices = null;
             _modelIndices = null;

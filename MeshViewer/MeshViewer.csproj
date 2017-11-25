@@ -190,6 +190,7 @@
     </Compile>
     <Compile Include="Rendering\FrameBuffer.cs" />
     <Compile Include="Rendering\IndexedModel.cs" />
+    <Compile Include="Rendering\InstancedBatchedIndexedModel.cs" />
     <Compile Include="Rendering\InstancedIndexedModel.cs" />
     <Compile Include="Rendering\RenderingExtensions.cs" />
     <Compile Include="Rendering\Shader.cs" />
