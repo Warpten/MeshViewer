@@ -95,13 +95,7 @@ namespace MeshViewer.Interface
         /// <param name="e"></param>
         private unsafe void OnFormLoad(object sender, EventArgs e)
         {
-            #region Process List
-            _wowComboBox.BeginUpdate();
-            _wowComboBox.Items.Clear();
-            var processList = System.Diagnostics.Process.GetProcessesByName("Wow").Select(p => new ProcessIdentifier { Name = p.ProcessName, ID = p.Id }).ToArray();
-            _wowComboBox.Items.AddRange(processList);
-            _wowComboBox.EndUpdate();
-            #endregion
+            RefreshClientList(sender, e);
 
             #region Object viewers
             _gameObjectExplorer.SetRenderer<ObjectListRenderer<CGGameObject_C>, CGGameObject_C>(new GameobjectListRenderer());
@@ -222,7 +216,7 @@ namespace MeshViewer.Interface
             {
                 var tileX = (int)Math.Floor(32 - Game.LocalPlayer.X / 533.3333f);
                 var tileY = (int)Math.Floor(32 - Game.LocalPlayer.Y / 533.3333f);
-                GeometryLoader.Render(tileY, tileX);
+                GeometryLoader.Render(tileY, tileX, toolStripTrackBar1.Value);
 
                 _renderControl.SwapBuffers();
             }
@@ -235,6 +229,7 @@ namespace MeshViewer.Interface
                 Filter = "PNG File (*.png)|*.png|JPEG File (*.jpeg, *.jpg)|*.jpeg|BMP File (*.bmp)|*.bmp"
             };
 
+            GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer ,0);
             var bmp = new Bitmap(_renderControl.ClientSize.Width, _renderControl.ClientSize.Height);
             var data = bmp.LockBits(_renderControl.ClientRectangle, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
             GL.ReadPixels(0, 0, _renderControl.ClientSize.Width, _renderControl.ClientSize.Height, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, PixelType.UnsignedByte, data.Scan0);
@@ -277,6 +272,20 @@ namespace MeshViewer.Interface
         private void OnTopMostToggled(object sender, EventArgs e)
         {
             TopMost = (sender as CheckBox).Checked;
+        }
+
+        private void RefreshClientList(object sender, EventArgs e)
+        {
+            _wowComboBox.BeginUpdate();
+            _wowComboBox.Items.Clear();
+            var processList = System.Diagnostics.Process.GetProcessesByName("Wow").Select(p => new ProcessIdentifier { Name = p.ProcessName, ID = p.Id }).ToArray();
+            _wowComboBox.Items.AddRange(processList);
+            _wowComboBox.EndUpdate();
+        }
+
+        private void ClientDropDownClosed(object sender, EventArgs e)
+        {
+            Focus();
         }
     }
 }

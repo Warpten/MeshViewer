@@ -86,9 +86,7 @@ namespace MeshViewer.Interface.Controls
                 // Force the property grid to re-load values.
                 var selectedObject = entityGrid.SelectedObject as CGObject_C;
                 if (instance.OBJECT_FIELD_GUID == selectedObject.OBJECT_FIELD_GUID)
-                {
-                    entityGrid.Refresh();
-                }
+                    entityGrid.SelectedObject = selectedObject;
             }));
         }
 
@@ -138,6 +136,10 @@ namespace MeshViewer.Interface.Controls
         private void OnCellClick(object sender, CellClickEventArgs e)
         {
             entityGrid.SelectedObject = e.Model;
+        }
+
+        private void OnSelectedGridItemChanged(object sender, SelectedGridItemChangedEventArgs e)
+        {
         }
     }
 }

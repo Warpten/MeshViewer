@@ -34,7 +34,9 @@
             this.attachToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.refreshToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.captureScreenshotToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripCheckBox2 = new MeshViewer.Interface.Controls.ToolStripCheckBox();
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripTrackBar1 = new MeshViewer.Interface.Controls.ToolStripTrackBar();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripCheckBox1 = new MeshViewer.Interface.Controls.ToolStripCheckBox();
@@ -47,7 +49,6 @@
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this._renderControl = new OpenTK.GLControl();
             this.tabControl1 = new System.Windows.Forms.TabControl();
-            this.toolStripCheckBox2 = new MeshViewer.Interface.Controls.ToolStripCheckBox();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabPage4.SuspendLayout();
@@ -59,13 +60,16 @@
             // 
             // menuStrip1
             // 
+            this.menuStrip1.BackColor = System.Drawing.SystemColors.Control;
+            this.menuStrip1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this._wowComboBox,
             this.attachToolStripMenuItem,
             this.refreshToolStripMenuItem,
             this.captureScreenshotToolStripMenuItem,
             this.toolStripCheckBox2,
-            this.settingsToolStripMenuItem});
+            this.settingsToolStripMenuItem,
+            this.toolStripTrackBar1});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(840, 27);
@@ -76,6 +80,7 @@
             // 
             this._wowComboBox.Name = "_wowComboBox";
             this._wowComboBox.Size = new System.Drawing.Size(150, 23);
+            this._wowComboBox.DropDownClosed += new System.EventHandler(this.ClientDropDownClosed);
             // 
             // attachToolStripMenuItem
             // 
@@ -91,6 +96,7 @@
             this.refreshToolStripMenuItem.Name = "refreshToolStripMenuItem";
             this.refreshToolStripMenuItem.Size = new System.Drawing.Size(74, 23);
             this.refreshToolStripMenuItem.Text = "Refresh";
+            this.refreshToolStripMenuItem.Click += new System.EventHandler(this.RefreshClientList);
             // 
             // captureScreenshotToolStripMenuItem
             // 
@@ -99,6 +105,16 @@
             this.captureScreenshotToolStripMenuItem.Size = new System.Drawing.Size(137, 23);
             this.captureScreenshotToolStripMenuItem.Text = "Capture screenshot";
             this.captureScreenshotToolStripMenuItem.Click += new System.EventHandler(this.OnScreenshotRequest);
+            // 
+            // toolStripCheckBox2
+            // 
+            this.toolStripCheckBox2.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.toolStripCheckBox2.BackColor = System.Drawing.SystemColors.Menu;
+            this.toolStripCheckBox2.Checked = false;
+            this.toolStripCheckBox2.Name = "toolStripCheckBox2";
+            this.toolStripCheckBox2.Size = new System.Drawing.Size(101, 20);
+            this.toolStripCheckBox2.Text = "Always on top";
+            this.toolStripCheckBox2.CheckedChanged += new System.EventHandler(this.OnTopMostToggled);
             // 
             // settingsToolStripMenuItem
             // 
@@ -109,6 +125,18 @@
             this.settingsToolStripMenuItem.Size = new System.Drawing.Size(77, 23);
             this.settingsToolStripMenuItem.Text = "Settings";
             this.settingsToolStripMenuItem.Click += new System.EventHandler(this.OnOpenSettingsRequest);
+            // 
+            // toolStripTrackBar1
+            // 
+            this.toolStripTrackBar1.AutoSize = false;
+            this.toolStripTrackBar1.BackColor = System.Drawing.SystemColors.Menu;
+            this.toolStripTrackBar1.Maximum = 4;
+            this.toolStripTrackBar1.Minimum = 1;
+            this.toolStripTrackBar1.Name = "toolStripTrackBar1";
+            this.toolStripTrackBar1.Size = new System.Drawing.Size(104, 20);
+            this.toolStripTrackBar1.Text = "toolStripTrackBar1";
+            this.toolStripTrackBar1.TickStyle = System.Windows.Forms.TickStyle.None;
+            this.toolStripTrackBar1.Value = 1;
             // 
             // statusStrip1
             // 
@@ -239,15 +267,6 @@
             this.tabControl1.Size = new System.Drawing.Size(815, 517);
             this.tabControl1.TabIndex = 1;
             // 
-            // toolStripCheckBox2
-            // 
-            this.toolStripCheckBox2.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-            this.toolStripCheckBox2.Checked = false;
-            this.toolStripCheckBox2.Name = "toolStripCheckBox2";
-            this.toolStripCheckBox2.Size = new System.Drawing.Size(101, 20);
-            this.toolStripCheckBox2.Text = "Always on top";
-            this.toolStripCheckBox2.CheckedChanged += new System.EventHandler(this.OnTopMostToggled);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -297,5 +316,6 @@
         private System.Windows.Forms.TabControl tabControl1;
         private Controls.ToolStripCheckBox toolStripCheckBox1;
         private Controls.ToolStripCheckBox toolStripCheckBox2;
+        private Controls.ToolStripTrackBar toolStripTrackBar1;
     }
 }

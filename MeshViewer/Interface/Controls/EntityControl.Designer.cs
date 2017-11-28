@@ -136,6 +136,7 @@
             this.entityGrid.Name = "entityGrid";
             this.entityGrid.Size = new System.Drawing.Size(897, 632);
             this.entityGrid.TabIndex = 1;
+            this.entityGrid.SelectedGridItemChanged += new System.Windows.Forms.SelectedGridItemChangedEventHandler(this.OnSelectedGridItemChanged);
             // 
             // EntityControl
             // 

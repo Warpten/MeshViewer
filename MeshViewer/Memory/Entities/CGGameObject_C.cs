@@ -116,7 +116,7 @@ namespace MeshViewer.Memory.Entities
         public byte AnimProgress => (byte)((GAMEOBJECT_BYTES_1 >> 24) & 0xFF);
         
         [Category("GameObject")]
-        public GameObjectDisplayInfoEntry DisplayInfo => GAMEOBJECT_DISPLAYID != 0 && DBC.GameObjectDisplayInfo != null ? DBC.GameObjectDisplayInfo[GAMEOBJECT_DISPLAYID] : null;
+        public GameObjectDisplayInfoRec_C DisplayInfo => GAMEOBJECT_DISPLAYID != 0 && DBC.GameObjectDisplayInfo != null ? DBC.GameObjectDisplayInfo[GAMEOBJECT_DISPLAYID] : null;
         #endregion
 
         public Matrix4 PositionMatrix => Read<Matrix4>(BaseAddress + 0x1D0);

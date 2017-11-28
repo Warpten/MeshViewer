@@ -313,7 +313,7 @@ namespace MeshViewer.Memory.Entities
                     for (var i = 0; i < auraCount; ++i)
                     {
                         var entry = Read<JamClientAuraInfo>(auraTable + SizeCache<JamClientAuraInfo>.Size * i);
-                        if (entry.SpellID != 0)
+                        if (entry.Spell != null)
                             collection.Add(entry);
                     }
                 }
@@ -322,7 +322,7 @@ namespace MeshViewer.Memory.Entities
                     for (var i = 0; i < auraCount; ++i)
                     {
                         var entry = Read<JamClientAuraInfo>(BaseAddress + 0xC10 + SizeCache<JamClientAuraInfo>.Size * i);
-                        if (entry.SpellID != 0)
+                        if (entry.Spell != null)
                             collection.Add(entry);
                     }
                 }

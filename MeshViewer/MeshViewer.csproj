@@ -107,7 +107,9 @@
   <ItemGroup>
     <Compile Include="Data\DBC.cs" />
     <Compile Include="Data\Structures\ForeignKey.cs" />
-    <Compile Include="Data\Structures\GameObjectDisplayInfoEntry.cs" />
+    <Compile Include="Data\Structures\GameObjectDisplayInfoRec_C.cs" />
+    <Compile Include="Data\Structures\SpellAuraOptionsRec_C.cs" />
+    <Compile Include="Data\Structures\SpellRec_C.cs" />
     <Compile Include="Geometry\BIH.cs" />
     <Compile Include="Geometry\BinaryReaderExtensions.cs" />
     <Compile Include="Geometry\Buildings\BuildingsLoader.cs" />
@@ -122,6 +124,7 @@
     <Compile Include="Interface\ComponentModel\Collection.cs" />
     <Compile Include="Interface\ComponentModel\CollectionConverter.cs" />
     <Compile Include="Interface\ComponentModel\EnumerableConverter.cs" />
+    <Compile Include="Interface\ComponentModel\FieldDescriptor.cs" />
     <Compile Include="Interface\ComponentModel\JamClientAuraCollection.cs" />
     <Compile Include="Interface\Controls\EntityControl.cs">
       <SubType>UserControl</SubType>
@@ -138,7 +141,22 @@
     <Compile Include="Interface\Controls\ListViews.Renderers\ObjectListRenderer.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Interface\Controls\ToolStripControlHost.cs">
+    <Compile Include="Interface\Controls\MemberRenderer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Interface\Controls\MemberRenderer.Designer.cs">
+      <DependentUpon>MemberRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Interface\Controls\PowerPropertyGrid.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Interface\Controls\PowerPropertyGrid.Designer.cs">
+      <DependentUpon>PowerPropertyGrid.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Interface\Controls\ToolStripCheckBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Interface\Controls\ToolStripTrackBar.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Interface\MainForm.cs">
@@ -198,6 +216,12 @@
     <Compile Include="Rendering\Textures\TerrainTexture.cs" />
     <EmbeddedResource Include="Interface\Controls\EntityControl.resx">
       <DependentUpon>EntityControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Interface\Controls\MemberRenderer.resx">
+      <DependentUpon>MemberRenderer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Interface\Controls\PowerPropertyGrid.resx">
+      <DependentUpon>PowerPropertyGrid.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Interface\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
