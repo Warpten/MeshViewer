@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace MeshViewer.Geometry.Terrain
 {
@@ -29,22 +30,23 @@ namespace MeshViewer.Geometry.Terrain
             Directory = Path.Combine(directory, "maps");
         }
 
-        private TerrainGridLoader LoadTile(int tileX, int tileY)
+        private async void LoadTile(int tileX, int tileY)
         {
-            return _terrainGrids.GetOrAdd(PackTile(tileX, tileY), (hash) =>
+            await Task.Run(() =>
             {
-                return new TerrainGridLoader(Directory, MapID, tileX, tileY);
-            });
+                return _terrainGrids.GetOrAdd(PackTile(tileX, tileY), (hash) =>
+                {
+                    return new TerrainGridLoader(Directory, MapID, tileX, tileY);
+                });
+            }).ConfigureAwait(false);
         }
 
         private int PackTile(int x, int y) => ((x & 0xFF) << 8) | (y & 0xFF);
 
         private static Vector3 TERRAIN_COLOR = new Vector3(1.0f, 0.435f, 0.071f);
 
-        public void Render(int centerTileX, int centerTileY)
+        public void Render(int centerTileX, int centerTileY, int renderRange)
         {
-            const int MAX_CHUNK_DISTANCE = 1; /// Debugging
-
             var terrainProgram = ShaderProgramCache.Instance.Get("terrain");
             var projModelView = Matrix4.Mult(Game.Camera.View, Game.Camera.Projection);
             var cameraDirection = Game.Camera.Forward;
@@ -59,8 +61,8 @@ namespace MeshViewer.Geometry.Terrain
                 if (!grid.Value.Valid)
                     continue;
 
-                var xInRange = Math.Abs(grid.Value.X - centerTileX) <= MAX_CHUNK_DISTANCE;
-                var yInRange = Math.Abs(grid.Value.Y - centerTileY) <= MAX_CHUNK_DISTANCE;
+                var xInRange = Math.Abs(grid.Value.X - centerTileX) <= renderRange;
+                var yInRange = Math.Abs(grid.Value.Y - centerTileY) <= renderRange;
 
                 if (!xInRange || !yInRange)
                 {
@@ -69,14 +71,14 @@ namespace MeshViewer.Geometry.Terrain
                 }
             }
 
-            for (var i = centerTileY - MAX_CHUNK_DISTANCE; i <= centerTileY + MAX_CHUNK_DISTANCE; ++i)
+            for (var i = centerTileY - renderRange; i <= centerTileY + renderRange; ++i)
             {
-                for (var j = centerTileX - MAX_CHUNK_DISTANCE; j <= centerTileX + MAX_CHUNK_DISTANCE; ++j)
+                for (var j = centerTileX - renderRange; j <= centerTileX + renderRange; ++j)
                 {
                     if (!_terrainGrids.TryGetValue(PackTile(j, i), out var gridLoader))
-                        gridLoader = LoadTile(j, i);
-                        
-                    gridLoader.Render();
+                        LoadTile(j, i);
+                    else
+                        gridLoader.Render();
                 }
             }
         }

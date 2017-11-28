@@ -4,7 +4,7 @@ using System.ComponentModel;
 namespace MeshViewer.Data.Structures
 {
     [TypeConverter(typeof(ExpandableObjectConverter))]
-    public sealed class GameObjectDisplayInfoEntry
+    public sealed class GameObjectDisplayInfoRec_C
     {
         public int ID { get; set; }
         public string Filename { get; set; }

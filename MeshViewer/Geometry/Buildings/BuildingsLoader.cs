@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MeshViewer.Geometry.Buildings
 {
@@ -41,7 +42,7 @@ namespace MeshViewer.Geometry.Buildings
 
         static Vector3 WMO_COLOR = new Vector3(0.063f, 0.886f, 0.243f);
 
-        public void Render(int centerTileX, int centerTileY)
+        public void Render(int centerTileX, int centerTileY, int renderRange)
         {
             // todo implement global model
             if (!_isTiled)
@@ -56,25 +57,23 @@ namespace MeshViewer.Geometry.Buildings
             wmoProgram.UniformVector("camera_direction", ref cameraDirection);
             wmoProgram.UniformVector("object_color", ref WMO_COLOR);
 
-            const int MAX_CHUNK_DISTANCE = 1; /// Debugging
-
             foreach (var kv in _grids)
             {
-                var xInRange = Math.Abs(kv.Value.X - centerTileX) <= MAX_CHUNK_DISTANCE;
-                var yInRange = Math.Abs(kv.Value.Y - centerTileY) <= MAX_CHUNK_DISTANCE;
+                var xInRange = Math.Abs(kv.Value.X - centerTileX) <= renderRange;
+                var yInRange = Math.Abs(kv.Value.Y - centerTileY) <= renderRange;
 
                 if (!xInRange || !yInRange)
                     kv.Value.RemoveInstances();
             }
 
-            for (var i = centerTileY - MAX_CHUNK_DISTANCE; i <= centerTileY + MAX_CHUNK_DISTANCE; ++i)
+            for (var i = centerTileY - renderRange; i <= centerTileY + renderRange; ++i)
             {
-                for (var j = centerTileX - MAX_CHUNK_DISTANCE; j <= centerTileX + MAX_CHUNK_DISTANCE; ++j)
+                for (var j = centerTileX - renderRange; j <= centerTileX + renderRange; ++j)
                 {
                     if (!_grids.TryGetValue(PackTile(j, i), out var gridRenderer))
-                        gridRenderer = LoadGrid(j, i);
-
-                    gridRenderer.AddInstances();
+                        LoadGrid(j, i);
+                    else
+                        gridRenderer.AddInstances();
                 }
             }
 
@@ -89,14 +88,15 @@ namespace MeshViewer.Geometry.Buildings
             }
         }
 
-        private BuildingsTileLoader LoadGrid(int tileX, int tileY)
+        private async void LoadGrid(int tileX, int tileY)
         {
-            var tileLoader = new BuildingsTileLoader();
-            tileLoader.LoadInstances(_directory, _mapId, tileX, tileY);
+            await Task.Run(() =>
+            {
+                var tileLoader = new BuildingsTileLoader();
+                tileLoader.LoadInstances(_directory, _mapId, tileX, tileY);
 
-            _grids[PackTile(tileX, tileY)] = tileLoader;
-
-            return tileLoader;
+                _grids[PackTile(tileX, tileY)] = tileLoader;
+            });
         }
     }
 }

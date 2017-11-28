@@ -24,7 +24,7 @@ namespace MeshViewer.Geometry
             GameObjects = new GameObjectLoader(directory);
         }
 
-        public static void Render(int centerTileX, int centerTileY)
+        public static void Render(int centerTileX, int centerTileY, int renderRange)
         {
             Buffer.Bind();
 
@@ -32,8 +32,8 @@ namespace MeshViewer.Geometry
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.Enable(EnableCap.DepthTest);
 
-            Terrain.Render(centerTileX, centerTileY);
-            Buildings.Render(centerTileX, centerTileY);
+            Terrain.Render(centerTileX, centerTileY, renderRange);
+            Buildings.Render(centerTileX, centerTileY, renderRange);
 
             GameObjects.Render();
 
