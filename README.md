@@ -15,4 +15,3 @@ Features
 Bugs
 
 - [ ] ADT holes appear to not work.
-- [ ] TC extracts M2 while it is pretty much know they do not give LoS at least when static spawned.
