@@ -129,40 +129,48 @@ namespace MeshViewer.Geometry.Terrain
             if (terrainIndices.Count == 0)
                 return false;
 
-            var terrainIndiceOffset = 0;
-
-            ushort[] holetab_h = { 0x1111, 0x2222, 0x4444, 0x8888 };
-            ushort[] holetab_v = { 0x000F, 0x00F0, 0x0F00, 0xF000 };
-
-            for (int square = 0; square < V8_SIZE_SQ; ++square)
+            if (Holes.Length > 0 && Holes.Any(h => h != 0))
             {
-                for (int j = 0; j < 2; ++j)
+                var terrainIndiceOffset = 0;
+
+                ushort[] holetab_h = { 0x1111, 0x2222, 0x4444, 0x8888 };
+                ushort[] holetab_v = { 0x000F, 0x00F0, 0x0F00, 0xF000 };
+
+                for (int square = 0; square < V8_SIZE_SQ; ++square)
                 {
-                    var useTerrain = stackedIndices.Count != 0;
-                    if (useTerrain)
+                    for (int j = 0; j < 2; ++j)
                     {
-                        var row = square / 128;
-                        var col = square % 128;
-                        var cellRow = row / 8;     // 8 squares per cell
-                        var cellCol = col / 8;
-                        var holeRow = (row % 8) / 2;
-                        var holeCol = (square - (row * 128 + cellCol * 8)) / 2;
+                        var useTerrain = true /* stackedIndices.Count != 0 */;
+                        if (useTerrain)
+                        {
+                            var row = square / 128;
+                            var col = square % 128;
+                            var cellRow = row / 8;     // 8 squares per cell
+                            var cellCol = col / 8;
+                            var holeRow = (row % 8) / 2;
+                            var holeCol = (square - (row * 128 + cellCol * 8)) / 2;
 
-                        var hole = Holes[cellRow * 16 + cellCol];
+                            var hole = Holes[cellRow * 16 + cellCol];
 
-                        useTerrain = (hole & holetab_h[holeCol] & holetab_v[holeRow]) == 0;
+                            useTerrain = (hole & holetab_h[holeCol] & holetab_v[holeRow]) == 0;
+                        }
+
+                        if (useTerrain)
+                        {
+                            for (var k = 0; k < 3 * 4 / 2; ++k)
+                                stackedIndices.Add(terrainIndices[k + terrainIndiceOffset]);
+                        }
+
+                        terrainIndiceOffset += 3 * 4 / 2;
                     }
-
-                    if (useTerrain)
-                        for (var k = 0; k < 3 * 4 / 2; ++k)
-                            stackedIndices.Add(terrainIndices[k + terrainIndiceOffset]);
-
-                    terrainIndiceOffset += 3 * 4 / 2;
                 }
+                stackedVertices.AddRange(terrainVertices);
             }
-
-            stackedIndices.AddRange(terrainIndices);
-            stackedVertices.AddRange(terrainVertices);
+            else
+            {
+                stackedIndices.AddRange(terrainIndices);
+                stackedVertices.AddRange(terrainVertices);
+            }
 
             CleanVertices(stackedIndices, stackedVertices);
 

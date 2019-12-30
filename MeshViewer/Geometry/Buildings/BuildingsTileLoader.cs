@@ -1,5 +1,6 @@
 ﻿using MeshViewer.Geometry.Model;
 using OpenTK;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 
@@ -12,7 +13,7 @@ namespace MeshViewer.Geometry.Buildings
 
         private string _directory;
 
-        private Dictionary<string, Dictionary<ulong, Matrix4>> _instanceGUIDs = new Dictionary<string, Dictionary<ulong, Matrix4>>();
+        private ConcurrentDictionary<string, ConcurrentDictionary<ulong, Matrix4>> _instanceGUIDs = new ConcurrentDictionary<string, ConcurrentDictionary<ulong, Matrix4>>();
         private bool _instancesRendered = false;
 
         public IEnumerable<string> Models => _instanceGUIDs.Keys;
@@ -84,9 +85,9 @@ namespace MeshViewer.Geometry.Buildings
 
                     var worldModel = WorldModelCache.OpenInstance(directory, modelName);
                     if (!_instanceGUIDs.TryGetValue(modelName, out var storageDictionary))
-                        storageDictionary = _instanceGUIDs[modelName] = new Dictionary<ulong, Matrix4>();
+                        storageDictionary = _instanceGUIDs[modelName] = new ConcurrentDictionary<ulong, Matrix4>();
 
-                    storageDictionary.Add(worldModel.AddInstance(ref modelPosition), modelPosition);
+                    storageDictionary.TryAdd(worldModel.AddInstance(ref modelPosition), modelPosition);
                 }
             }
 
